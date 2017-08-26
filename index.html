@@ -5,15 +5,14 @@
     <meta content="utf-8" http-equiv="encoding">
     <title>Game Demo</title>
     <link rel='stylesheet' href='style.css'>
-    <script src='javascript/jquery.js'></script>
-    <script src='javascript/underscore.js'></script>
     <script src='javascript/demo.js'></script>
     <script src='javascript/vectors.js'></script>
+    <script src='javascript/map.js'></script>
 </head>
 <body onload='initGame()'>
 <div id="viewport">
     <div id="gameworld">
-        <div id="floor"></div>
+        <canvas id="floor" width="1680" height="950"></canvas>
         <div id="characters"></div>
         <canvas id="shadows" width="1680" height="950"></canvas>
         <canvas id="light-mask" width="1680" height="950"></canvas>

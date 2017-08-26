@@ -8,6 +8,9 @@
       this.shadowCtx = this.shadowCanvas.getContext('2d');
       this.maskCanvas = document.getElementById('light-mask');
       this.maskCtx = this.maskCanvas.getContext('2d');
+      this.map = new Map();
+      this.map.generate();
+      this.map.draw();
       this.pos = {
         x: 10,
         y: 10
@@ -34,17 +37,36 @@
         return false;
       }
       this.shadowCtx.clearRect(0, 0, this.shadowCanvas.width, this.shadowCanvas.height);
-      this.drawLightMask();
       this.drawOrb();
-      this.drawLines();
+      this.drawLineShadows();
+      this.drawLightMask();
+      this.map.drawWalls(this.shadowCtx);
+      this.map.drawEdges(this.shadowCtx);
       return this.changed = false;
     };
 
     Game.prototype.drawOrb = function() {
-      this.shadowCtx.fillStyle = '#0ff';
+      var grd, radius;
+      radius = 60;
+      grd = this.maskCtx.createRadialGradient(this.pos.x, this.pos.y, 10, this.pos.x, this.pos.y, radius);
+      grd.addColorStop(0, 'rgba(60,255,255,0.6)');
+      grd.addColorStop(0.5, 'rgba(60,255,255,0.2)');
+      grd.addColorStop(1, 'rgba(60,255,255,0)');
+      this.shadowCtx.fillStyle = grd;
       this.shadowCtx.beginPath();
-      this.shadowCtx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI * 2);
-      return this.shadowCtx.fill();
+      this.shadowCtx.arc(this.pos.x, this.pos.y, radius, 0, Math.PI * 2);
+      this.shadowCtx.fill();
+      grd = this.maskCtx.createRadialGradient(this.pos.x + 3, this.pos.y - 3, 2, this.pos.x, this.pos.y, 7);
+      grd.addColorStop(0, '#fff');
+      grd.addColorStop(1, '#0ff');
+      this.shadowCtx.fillStyle = grd;
+      this.shadowCtx.beginPath();
+      this.shadowCtx.arc(this.pos.x, this.pos.y, 7, 0, Math.PI * 2);
+      this.shadowCtx.fill();
+      this.shadowCtx.strokeStyle = '#aff';
+      this.shadowCtx.beginPath();
+      this.shadowCtx.arc(this.pos.x, this.pos.y, 8, 0, Math.PI * 2);
+      return this.shadowCtx.stroke();
     };
 
     Game.prototype.drawPoints = function() {
@@ -92,8 +114,7 @@
     };
 
     Game.prototype.drawLineShadows = function() {
-      var angDist1, angDist2, end1, end2, j, l, len, p1, p2, ref, results;
-      this.shadowCtx.fillStyle = 'rgba(0,0,0,0.6)';
+      var angDist1, angDist2, j, l, len, p1, p2, ref, results;
       ref = this.lines;
       results = [];
       for (j = 0, len = ref.length; j < len; j++) {
@@ -103,20 +124,26 @@
         angDist1 = Vectors.angleDistBetweenPoints(this.pos, p1);
         angDist2 = Vectors.angleDistBetweenPoints(this.pos, p2);
         if (angDist1.distance < 300 || angDist2.distance < 300) {
-          this.shadowCtx.beginPath();
-          end1 = Vectors.addVectorToPoint(p1, angDist1.angle, 900);
-          end2 = Vectors.addVectorToPoint(p2, angDist2.angle, 900);
-          this.shadowCtx.moveTo(p1.x, p1.y);
-          this.shadowCtx.lineTo(end1.x, end1.y);
-          this.shadowCtx.lineTo(end2.x, end2.y);
-          this.shadowCtx.lineTo(p2.x, p2.y);
-          this.shadowCtx.lineTo(p1.x, p1.y);
-          results.push(this.shadowCtx.fill());
+          this.shadowCtx.fillStyle = 'rgba(20,20,20,0.6)';
+          results.push(this.drawShadow(p1, p2, angDist1.angle, angDist2.angle));
         } else {
           results.push(void 0);
         }
       }
       return results;
+    };
+
+    Game.prototype.drawShadow = function(p1, p2, ang1, ang2) {
+      var end1, end2;
+      this.shadowCtx.beginPath();
+      end1 = Vectors.addVectorToPoint(p1, ang1, 900);
+      end2 = Vectors.addVectorToPoint(p2, ang2, 900);
+      this.shadowCtx.moveTo(p1.x, p1.y);
+      this.shadowCtx.lineTo(end1.x, end1.y);
+      this.shadowCtx.lineTo(end2.x, end2.y);
+      this.shadowCtx.lineTo(p2.x, p2.y);
+      this.shadowCtx.lineTo(p1.x, p1.y);
+      return this.shadowCtx.fill();
     };
 
     Game.prototype.drawLightMask = function() {
@@ -137,7 +164,7 @@
 
     Game.prototype.updateMousePos = function(e) {
       game.pos.x = e.pageX;
-      game.pos.y = e.pageY;
+      game.pos.y = e.pageY - 10;
       return game.changed = true;
     };
 
@@ -154,17 +181,7 @@
     };
 
     Game.prototype.initLines = function() {
-      var i, j, p1, p2, results;
-      results = [];
-      for (i = j = 0; j <= 99; i = ++j) {
-        p1 = {
-          x: randInt(50, 1580),
-          y: randInt(50, 850)
-        };
-        p2 = Vectors.addVectorToPoint(p1, Math.random() * Math.PI * 2, randInt(20, 100));
-        results.push(this.lines[i] = [p1, p2]);
-      }
-      return results;
+      return this.lines = this.map.lines();
     };
 
     return Game;
