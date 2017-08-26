@@ -4,8 +4,10 @@
 
   Game = (function() {
     function Game() {
-      this.canvas = document.getElementById('light-mask');
-      this.ctx = this.canvas.getContext('2d');
+      this.shadowCanvas = document.getElementById('shadows');
+      this.shadowCtx = this.shadowCanvas.getContext('2d');
+      this.maskCanvas = document.getElementById('light-mask');
+      this.maskCtx = this.maskCanvas.getContext('2d');
       this.pos = {
         x: 10,
         y: 10
@@ -31,67 +33,67 @@
       if (!this.changed) {
         return false;
       }
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.shadowCtx.clearRect(0, 0, this.shadowCanvas.width, this.shadowCanvas.height);
+      this.drawLightMask();
       this.drawOrb();
-      this.drawLineShadows();
       this.drawLines();
       return this.changed = false;
     };
 
     Game.prototype.drawOrb = function() {
-      this.ctx.fillStyle = '#0ff';
-      this.ctx.beginPath();
-      this.ctx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI * 2);
-      return this.ctx.fill();
+      this.shadowCtx.fillStyle = '#0ff';
+      this.shadowCtx.beginPath();
+      this.shadowCtx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI * 2);
+      return this.shadowCtx.fill();
     };
 
     Game.prototype.drawPoints = function() {
       var j, len, p, ref, results;
-      this.ctx.fillStyle = '#008';
+      this.shadowCtx.fillStyle = '#008';
       ref = this.points;
       results = [];
       for (j = 0, len = ref.length; j < len; j++) {
         p = ref[j];
-        this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, 1, 0, Math.PI * 2);
-        results.push(this.ctx.fill());
+        this.shadowCtx.beginPath();
+        this.shadowCtx.arc(p.x, p.y, 1, 0, Math.PI * 2);
+        results.push(this.shadowCtx.fill());
       }
       return results;
     };
 
     Game.prototype.drawPointRays = function() {
       var angDist, endPoint, j, len, p, ref;
-      this.ctx.strokeStyle = '#080';
-      this.ctx.beginPath();
+      this.shadowCtx.strokeStyle = '#080';
+      this.shadowCtx.beginPath();
       ref = this.points;
       for (j = 0, len = ref.length; j < len; j++) {
         p = ref[j];
         angDist = Vectors.angleDistBetweenPoints(this.pos, p);
         if (angDist.distance < 100) {
           endPoint = Vectors.addVectorToPoint(p, angDist.angle, 200);
-          this.ctx.moveTo(p.x, p.y);
-          this.ctx.lineTo(endPoint.x, endPoint.y);
+          this.shadowCtx.moveTo(p.x, p.y);
+          this.shadowCtx.lineTo(endPoint.x, endPoint.y);
         }
       }
-      return this.ctx.stroke();
+      return this.shadowCtx.stroke();
     };
 
     Game.prototype.drawLines = function() {
       var j, l, len, ref;
-      this.ctx.strokeStyle = '#800';
-      this.ctx.beginPath();
+      this.shadowCtx.strokeStyle = '#800';
+      this.shadowCtx.beginPath();
       ref = this.lines;
       for (j = 0, len = ref.length; j < len; j++) {
         l = ref[j];
-        this.ctx.moveTo(l[0].x, l[0].y);
-        this.ctx.lineTo(l[1].x, l[1].y);
+        this.shadowCtx.moveTo(l[0].x, l[0].y);
+        this.shadowCtx.lineTo(l[1].x, l[1].y);
       }
-      return this.ctx.stroke();
+      return this.shadowCtx.stroke();
     };
 
     Game.prototype.drawLineShadows = function() {
       var angDist1, angDist2, end1, end2, j, l, len, p1, p2, ref, results;
-      this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      this.shadowCtx.fillStyle = 'rgba(0,0,0,0.6)';
       ref = this.lines;
       results = [];
       for (j = 0, len = ref.length; j < len; j++) {
@@ -101,20 +103,36 @@
         angDist1 = Vectors.angleDistBetweenPoints(this.pos, p1);
         angDist2 = Vectors.angleDistBetweenPoints(this.pos, p2);
         if (angDist1.distance < 300 || angDist2.distance < 300) {
-          this.ctx.beginPath();
+          this.shadowCtx.beginPath();
           end1 = Vectors.addVectorToPoint(p1, angDist1.angle, 900);
           end2 = Vectors.addVectorToPoint(p2, angDist2.angle, 900);
-          this.ctx.moveTo(p1.x, p1.y);
-          this.ctx.lineTo(end1.x, end1.y);
-          this.ctx.lineTo(end2.x, end2.y);
-          this.ctx.lineTo(p2.x, p2.y);
-          this.ctx.lineTo(p1.x, p1.y);
-          results.push(this.ctx.fill());
+          this.shadowCtx.moveTo(p1.x, p1.y);
+          this.shadowCtx.lineTo(end1.x, end1.y);
+          this.shadowCtx.lineTo(end2.x, end2.y);
+          this.shadowCtx.lineTo(p2.x, p2.y);
+          this.shadowCtx.lineTo(p1.x, p1.y);
+          results.push(this.shadowCtx.fill());
         } else {
           results.push(void 0);
         }
       }
       return results;
+    };
+
+    Game.prototype.drawLightMask = function() {
+      var grd, radius;
+      radius = 500;
+      this.maskCtx.fillStyle = '#000';
+      this.maskCtx.fillRect(0, 0, 1680, 950);
+      this.maskCtx.globalCompositeOperation = 'destination-out';
+      grd = this.maskCtx.createRadialGradient(this.pos.x, this.pos.y, radius / 4, this.pos.x, this.pos.y, radius);
+      grd.addColorStop(0, 'white');
+      grd.addColorStop(1, 'rgba(255,255,255,0)');
+      this.maskCtx.fillStyle = grd;
+      this.maskCtx.beginPath();
+      this.maskCtx.arc(this.pos.x, this.pos.y, radius, 0, Math.PI * 2);
+      this.maskCtx.fill();
+      return this.maskCtx.globalCompositeOperation = 'source-over';
     };
 
     Game.prototype.updateMousePos = function(e) {

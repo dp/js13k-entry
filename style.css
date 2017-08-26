@@ -26,6 +26,14 @@ body {
     width: 1680px;
     height: 1000px;
 }
+#shadows {
+    position: absolute;
+    top:0;
+    left: 0;
+    /*background-color: rgba(0,0,255,0.2);*/
+    width: 1680px;
+    height: 950px;
+}
 #light-mask {
     position: absolute;
     top:0;
