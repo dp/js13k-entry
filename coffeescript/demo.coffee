@@ -5,7 +5,9 @@ class Game
         @pos = x:10, y:10
         @changed = true
         @points = []
-        @initPoints()
+        @lines = []
+#        @initPoints()
+        @initLines()
 
     update: (timestamp) ->
         if @lastTimestamp
@@ -19,8 +21,10 @@ class Game
         return false unless @changed
         @ctx.clearRect(0, 0, @canvas.width, @canvas.height)
         @drawOrb()
-        @drawPointRays()
-        @drawPoints()
+#        @drawPointRays()
+#        @drawPoints()
+        @drawLineShadows()
+        @drawLines()
         @changed = false
 
     drawOrb: ->
@@ -47,6 +51,32 @@ class Game
                 @ctx.lineTo(endPoint.x, endPoint.y)
         @ctx.stroke()
 
+    drawLines: ->
+        @ctx.strokeStyle = '#800'
+        @ctx.beginPath()
+        for l in @lines
+            @ctx.moveTo(l[0].x, l[0].y)
+            @ctx.lineTo(l[1].x, l[1].y)
+        @ctx.stroke()
+
+    drawLineShadows: ->
+        @ctx.fillStyle = 'rgba(0,0,0,0.3)'
+        for l in @lines
+            p1 = l[0]
+            p2 = l[1]
+            angDist1 = Vectors.angleDistBetweenPoints @pos, p1
+            angDist2 = Vectors.angleDistBetweenPoints @pos, p2
+            if angDist1.distance < 300 || angDist2.distance < 300
+                @ctx.beginPath()
+                end1 = Vectors.addVectorToPoint(p1, angDist1.angle, 900)
+                end2 = Vectors.addVectorToPoint(p2, angDist2.angle, 900)
+                @ctx.moveTo(p1.x, p1.y)
+                @ctx.lineTo(end1.x, end1.y)
+                @ctx.lineTo(end2.x, end2.y)
+                @ctx.lineTo(p2.x, p2.y)
+                @ctx.lineTo(p1.x, p1.y)
+                @ctx.fill()
+
     updateMousePos: (e) ->
         game.pos.x = e.pageX
         game.pos.y = e.pageY
@@ -55,6 +85,12 @@ class Game
     initPoints: ->
         for i in [0..999]
             @points[i] = {x:randInt(50, 1580), y:randInt(50, 850)}
+
+    initLines: ->
+        for i in [0..99]
+            p1 = {x:randInt(50, 1580), y:randInt(50, 850)}
+            p2 = Vectors.addVectorToPoint(p1, Math.random() * Math.PI * 2, randInt(20, 100))
+            @lines[i] = [p1, p2]
 
 
 window.randInt = (min, range) ->

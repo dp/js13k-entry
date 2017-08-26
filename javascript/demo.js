@@ -12,7 +12,8 @@
       };
       this.changed = true;
       this.points = [];
-      this.initPoints();
+      this.lines = [];
+      this.initLines();
     }
 
     Game.prototype.update = function(timestamp) {
@@ -32,8 +33,8 @@
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.drawOrb();
-      this.drawPointRays();
-      this.drawPoints();
+      this.drawLineShadows();
+      this.drawLines();
       return this.changed = false;
     };
 
@@ -75,6 +76,47 @@
       return this.ctx.stroke();
     };
 
+    Game.prototype.drawLines = function() {
+      var j, l, len, ref;
+      this.ctx.strokeStyle = '#800';
+      this.ctx.beginPath();
+      ref = this.lines;
+      for (j = 0, len = ref.length; j < len; j++) {
+        l = ref[j];
+        this.ctx.moveTo(l[0].x, l[0].y);
+        this.ctx.lineTo(l[1].x, l[1].y);
+      }
+      return this.ctx.stroke();
+    };
+
+    Game.prototype.drawLineShadows = function() {
+      var angDist1, angDist2, end1, end2, j, l, len, p1, p2, ref, results;
+      this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ref = this.lines;
+      results = [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        l = ref[j];
+        p1 = l[0];
+        p2 = l[1];
+        angDist1 = Vectors.angleDistBetweenPoints(this.pos, p1);
+        angDist2 = Vectors.angleDistBetweenPoints(this.pos, p2);
+        if (angDist1.distance < 300 || angDist2.distance < 300) {
+          this.ctx.beginPath();
+          end1 = Vectors.addVectorToPoint(p1, angDist1.angle, 900);
+          end2 = Vectors.addVectorToPoint(p2, angDist2.angle, 900);
+          this.ctx.moveTo(p1.x, p1.y);
+          this.ctx.lineTo(end1.x, end1.y);
+          this.ctx.lineTo(end2.x, end2.y);
+          this.ctx.lineTo(p2.x, p2.y);
+          this.ctx.lineTo(p1.x, p1.y);
+          results.push(this.ctx.fill());
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    };
+
     Game.prototype.updateMousePos = function(e) {
       game.pos.x = e.pageX;
       game.pos.y = e.pageY;
@@ -89,6 +131,20 @@
           x: randInt(50, 1580),
           y: randInt(50, 850)
         });
+      }
+      return results;
+    };
+
+    Game.prototype.initLines = function() {
+      var i, j, p1, p2, results;
+      results = [];
+      for (i = j = 0; j <= 99; i = ++j) {
+        p1 = {
+          x: randInt(50, 1580),
+          y: randInt(50, 850)
+        };
+        p2 = Vectors.addVectorToPoint(p1, Math.random() * Math.PI * 2, randInt(20, 100));
+        results.push(this.lines[i] = [p1, p2]);
       }
       return results;
     };
