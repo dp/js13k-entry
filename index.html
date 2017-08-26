@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title>Game Demo</title>
+    <link rel='stylesheet' href='style.css'>
+    <script src='javascript/jquery.js'></script>
+    <script src='javascript/underscore.js'></script>
+    <script src='javascript/demo.js'></script>
+    <script src='javascript/vectors.js'></script>
+</head>
+<body onload='initGame()'>
+<div id="viewport">
+    <div id="gameworld">
+        <div id="floor"></div>
+        <div id="characters"></div>
+        <canvas id="light-mask" width="1680" height="950">
+
+            <!--<svg id="circle" height="600" xmlns="http://www.w3.org/2000/svg">-->
+                <!--<circle id="c1" cx="130" cy="200" r="50" fill="black"/>-->
+                <!--<circle id="c2" cx="100" cy="200" r="100" fill="black" opacity="0.5"/>-->
+                <!--<polygon id="p1" points="200,10 250,190 160,210" style="fill:lime;stroke:purple;stroke-width:1" opacity="0.5"/>-->
+            <!--</svg>-->
+
+        </canvas>
+    </div>
+</div>
+
+<p id="debug"></p>
+</body>
+</html>
+
