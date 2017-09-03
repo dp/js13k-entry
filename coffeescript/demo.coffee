@@ -4,15 +4,19 @@ class Game
         @map.canvas.style.width = @map.canvas.width + 'px'
         @map.draw()
 
-        @shadowCanvas = document.getElementById('shadows')
+        @shadowCanvas = document.createElement('canvas')
         @shadowCtx = @shadowCanvas.getContext('2d')
         @maskCanvas = document.getElementById('light-mask')
         @maskCtx = @maskCanvas.getContext('2d')
+        @viewCanvas = document.getElementById('view')
+        @viewCtx = @viewCanvas.getContext('2d')
 
         @shadowCanvas.width = (@map.w + 1) * @map.tileSize
         @shadowCanvas.height = (@map.h + 1) * @map.tileSize
         @maskCanvas.width = window.innerWidth
         @maskCanvas.height = window.innerHeight
+        @viewCanvas.width = window.innerWidth
+        @viewCanvas.height = window.innerHeight
         @maskCtx.fillStyle = '#000'
         @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
         @gameWorld = byId('gameworld')
@@ -29,8 +33,11 @@ class Game
         @lightOn = false
 #        @initPoints()
         @initLines()
+        @turnLightOn()
+        @turnLightOff()
         openingText()
-        setTimeout( (->window.requestAnimationFrame update), 10000)
+        setTimeout( (->window.requestAnimationFrame update), 1000)
+
 
 
 
@@ -40,6 +47,10 @@ class Game
         else
             delta = 0
         @lastTimestamp = timestamp
+
+        @lightOffTween.update(delta)
+        @lightOnTween.update(delta)
+
         unless @lightOn
             if @nightVisionRadius < @maxNightVisionRadius
                 @changed = true
@@ -74,22 +85,45 @@ class Game
 #                @pos.x = newPos.x
 #                @pos.y = newPos.y
             @changed = true
+        if window.toggleLight
+            if @lightOn
+                @turnLightOff()
+            else
+                @turnLightOn()
+            window.toggleLight = false
+            @changed = true
 
         @draw(delta)
 
+    turnLightOn: ->
+        @lightOn = true
+        @lightOnTween = new Tween(3.0, {rgb:[200,0], r:[10, @lightRadius], a:[0.0, 1.0]})
+        
+    turnLightOff: ->
+        @lightOn = false
+        @lightOffTween = new Tween(3.0, {rgb:[0,0], r:[0,200], a:[0, 0.4]})
+        window.lit = @lightOffTween
+
     draw: (delta) ->
-        return false unless @changed
+#        return false unless @changed
         @shadowCtx.clearRect(0, 0, @shadowCanvas.width, @shadowCanvas.height)
         @drawOrb()
 #        @drawPointRays()
 #        @drawPoints()
-        @drawLineShadows()
+        @drawLineShadows() if @lightOn
         @positionMap()
         @drawLightMask()
 #        @map.drawWalls(@shadowCtx)
 #        @map.drawEdges(@shadowCtx)
 #        @drawLines()
+        @compositeCanvas()
         @changed = false
+
+    compositeCanvas: ->
+        game.viewCtx.drawImage(@map.floorCanvas, @viewX - @pos.x, @viewY - @pos.y)
+        game.viewCtx.drawImage(@shadowCanvas, @viewX - @pos.x, @viewY - @pos.y)
+        game.viewCtx.drawImage(@map.canvas, @viewX - @pos.x, @viewY - @pos.y)
+
 
     drawOrb: ->
         radius = 20
@@ -197,7 +231,7 @@ class Game
                     delta -= Math.PI * 2 if delta > Math.PI
 
                     if delta < 0
-                        @shadowCtx.fillStyle = 'rgba(20,20,20,0.6)'
+                        @shadowCtx.fillStyle = 'rgba(0,0,0,0.8)'
                         @drawShadow(p1, p2, angDist1.angle, angDist2.angle)
 
 
@@ -236,21 +270,21 @@ class Game
 
 
     drawLightMask: ->
-#        return
-        @maskCtx.fillStyle = '#000'
-        @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
-        @maskCtx.globalCompositeOperation = 'destination-out'
 
         if @lightOn
-            radius = @lightRadius
-            grd = @maskCtx.createRadialGradient(@viewX, @viewY, radius / 4, @viewX, @viewY, radius)
-            grd.addColorStop(0, 'white')
-            grd.addColorStop(1, 'rgba(255,255,255,0)')
+            tween = @lightOnTween
         else
-            radius = @nightVisionRadius
-            grd = @maskCtx.createRadialGradient(@viewX, @viewY, radius / 4, @viewX, @viewY, radius)
-            grd.addColorStop(0, 'rgba(255,255,255, 0.4)')
-            grd.addColorStop(1, 'rgba(255,255,255,0)')
+            tween = @lightOffTween
+
+        rgb=tween.value('rgb')
+        @maskCtx.fillStyle = "rgb(#{rgb},#{rgb},#{rgb})"
+        radius = tween.value('r')
+        grd = @maskCtx.createRadialGradient(@viewX, @viewY, radius / 4, @viewX, @viewY, radius)
+        grd.addColorStop(0, "rgba(255,255,255,#{tween.value('a')})")
+        grd.addColorStop(1, 'rgba(255,255,255,0)')
+
+        @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
+        @maskCtx.globalCompositeOperation = 'destination-out'
         @maskCtx.fillStyle=grd
         @maskCtx.beginPath()
         @maskCtx.arc(@viewX, @viewY, radius, 0, Math.PI * 2)
@@ -304,9 +338,7 @@ window.saySoon = (msg, holdTime, delay) ->
 
 window.openingText = ->
     messages =[
-        ['.      ', .8, 1]
-        ['   .   ', .3, 1.5]
-        ['      .', -.2, 2]
+        ['. . .', -.2, 1]
         ["It's dark,              ", 1, 5]
         ["             isn't it?", 0, 6]
         ["Don't worry", 0, 10]
@@ -354,8 +386,7 @@ window.up = window.right = window.down = window.left = false
 window.onkeydown = (e) ->
     # Up (up / W / Z)
     if e.keyCode == 32
-        pixel = game.map.ctx.getImageData(game.pos.x, game.pos.y, 1, 1)
-        console.log pixel.data
+        window.toggleLight = true
     if(e.keyCode == 38 || e.keyCode == 90 || e.keyCode == 87)
         window.up = true
     # Right (right / D)
@@ -367,7 +398,6 @@ window.onkeydown = (e) ->
     # Left (left / A / Q)
     if(e.keyCode == 37 || e.keyCode == 65 ||e.keyCode == 81)
         window.left = true
-#    console.log "up:#{up} down:#{down} left:#{left} right:#{right}"
 
 
 # Keyup listener

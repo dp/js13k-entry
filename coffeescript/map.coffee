@@ -13,11 +13,12 @@ class Map
             reseedMethod: args.reseedMethod
             emptyTolerance: parseInt(args.emptyTolerance)
             wallRoughness: parseInt(args.wallRoughness) / 100
-        @canvas = document.getElementById(canvasId)
+        @canvas = document.createElement('canvas')
+#        @canvas = document.getElementById(canvasId)
         @canvas.width = (@w + 1) * @tileSize
         @canvas.height = (@h + 1) * @tileSize
         @ctx = @canvas.getContext('2d')
-        @floorCanvas = document.getElementById('floor')
+        @floorCanvas = document.createElement('canvas')
         @floorCanvas.width = (@w + 1) * @tileSize
         @floorCanvas.height = (@h + 1) * @tileSize
         @floorCtx = @floorCanvas.getContext('2d')

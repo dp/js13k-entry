@@ -8,15 +8,14 @@
     <script src='javascript/demo.js'></script>
     <script src='javascript/vectors.js'></script>
     <script src='javascript/map.js'></script>
+    <script src='javascript/tween.js'></script>
 </head>
 <body onload='initGame()' onkeydownx="onkeydown(e)" onkeyupx="onkeyup(e)">
 <div id="viewport">
     <div id="gameworld">
-        <canvas id="floor"></canvas>
-        <canvas id="shadows"></canvas>
-        <canvas id="map"></canvas>
         <div id="characters"></div>
     </div>
+    <canvas id="view"></canvas>
     <canvas id="light-mask"></canvas>
     <div id="overlay">
     </div>

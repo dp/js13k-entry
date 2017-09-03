@@ -60,6 +60,7 @@ body {
     width: 2000px;
     height: 2000px;
     /*background-image: url('images/floor.png');*/
+    display: none;
 }
 /*#shadows {*/
     /*position: absolute;*/
@@ -69,7 +70,7 @@ body {
     /*width: 1680px;*/
     /*height: 950px;*/
 /*}*/
-#light-mask {
+#light-mask, #view {
     position: absolute;
     top:0;
     left: 0;
@@ -82,11 +83,11 @@ body {
     /*width: 1680px;*/
     /*height: 1000px;*/
 /*}*/
-#map, #shadows, #floor {
-    position: absolute;
-    top:0;
-    left: 0;
-}
+/*#map, #shadows, #floor {*/
+    /*position: absolute;*/
+    /*top:0;*/
+    /*left: 0;*/
+/*}*/
 
 /*#debug {*/
     /*position: fixed;*/

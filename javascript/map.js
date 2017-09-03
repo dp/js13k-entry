@@ -17,11 +17,11 @@
         emptyTolerance: parseInt(args.emptyTolerance),
         wallRoughness: parseInt(args.wallRoughness) / 100
       };
-      this.canvas = document.getElementById(canvasId);
+      this.canvas = document.createElement('canvas');
       this.canvas.width = (this.w + 1) * this.tileSize;
       this.canvas.height = (this.h + 1) * this.tileSize;
       this.ctx = this.canvas.getContext('2d');
-      this.floorCanvas = document.getElementById('floor');
+      this.floorCanvas = document.createElement('canvas');
       this.floorCanvas.width = (this.w + 1) * this.tileSize;
       this.floorCanvas.height = (this.h + 1) * this.tileSize;
       this.floorCtx = this.floorCanvas.getContext('2d');

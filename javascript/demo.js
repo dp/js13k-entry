@@ -7,14 +7,18 @@
       this.map = new Map('map', mapParams);
       this.map.canvas.style.width = this.map.canvas.width + 'px';
       this.map.draw();
-      this.shadowCanvas = document.getElementById('shadows');
+      this.shadowCanvas = document.createElement('canvas');
       this.shadowCtx = this.shadowCanvas.getContext('2d');
       this.maskCanvas = document.getElementById('light-mask');
       this.maskCtx = this.maskCanvas.getContext('2d');
+      this.viewCanvas = document.getElementById('view');
+      this.viewCtx = this.viewCanvas.getContext('2d');
       this.shadowCanvas.width = (this.map.w + 1) * this.map.tileSize;
       this.shadowCanvas.height = (this.map.h + 1) * this.map.tileSize;
       this.maskCanvas.width = window.innerWidth;
       this.maskCanvas.height = window.innerHeight;
+      this.viewCanvas.width = window.innerWidth;
+      this.viewCanvas.height = window.innerHeight;
       this.maskCtx.fillStyle = '#000';
       this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
       this.gameWorld = byId('gameworld');
@@ -31,10 +35,12 @@
       this.nightVisionChangeRate = 10;
       this.lightOn = false;
       this.initLines();
+      this.turnLightOn();
+      this.turnLightOff();
       openingText();
       setTimeout((function() {
         return window.requestAnimationFrame(update);
-      }), 10000);
+      }), 1000);
     }
 
     Game.prototype.update = function(timestamp) {
@@ -45,6 +51,8 @@
         delta = 0;
       }
       this.lastTimestamp = timestamp;
+      this.lightOffTween.update(delta);
+      this.lightOnTween.update(delta);
       if (!this.lightOn) {
         if (this.nightVisionRadius < this.maxNightVisionRadius) {
           this.changed = true;
@@ -90,19 +98,53 @@
         }
         this.changed = true;
       }
+      if (window.toggleLight) {
+        if (this.lightOn) {
+          this.turnLightOff();
+        } else {
+          this.turnLightOn();
+        }
+        window.toggleLight = false;
+        this.changed = true;
+      }
       return this.draw(delta);
     };
 
+    Game.prototype.turnLightOn = function() {
+      this.lightOn = true;
+      return this.lightOnTween = new Tween(3.0, {
+        rgb: [200, 0],
+        r: [10, this.lightRadius],
+        a: [0.0, 1.0]
+      });
+    };
+
+    Game.prototype.turnLightOff = function() {
+      this.lightOn = false;
+      this.lightOffTween = new Tween(3.0, {
+        rgb: [0, 0],
+        r: [0, 200],
+        a: [0, 0.4]
+      });
+      return window.lit = this.lightOffTween;
+    };
+
     Game.prototype.draw = function(delta) {
-      if (!this.changed) {
-        return false;
-      }
       this.shadowCtx.clearRect(0, 0, this.shadowCanvas.width, this.shadowCanvas.height);
       this.drawOrb();
-      this.drawLineShadows();
+      if (this.lightOn) {
+        this.drawLineShadows();
+      }
       this.positionMap();
       this.drawLightMask();
+      this.compositeCanvas();
       return this.changed = false;
+    };
+
+    Game.prototype.compositeCanvas = function() {
+      game.viewCtx.drawImage(this.map.floorCanvas, this.viewX - this.pos.x, this.viewY - this.pos.y);
+      game.viewCtx.drawImage(this.shadowCanvas, this.viewX - this.pos.x, this.viewY - this.pos.y);
+      return game.viewCtx.drawImage(this.map.canvas, this.viewX - this.pos.x, this.viewY - this.pos.y);
     };
 
     Game.prototype.drawOrb = function() {
@@ -216,7 +258,7 @@
               delta -= Math.PI * 2;
             }
             if (delta < 0) {
-              this.shadowCtx.fillStyle = 'rgba(20,20,20,0.6)';
+              this.shadowCtx.fillStyle = 'rgba(0,0,0,0.8)';
               this.drawShadow(p1, p2, angDist1.angle, angDist2.angle);
             }
           }
@@ -239,21 +281,20 @@
     };
 
     Game.prototype.drawLightMask = function() {
-      var grd, radius;
-      this.maskCtx.fillStyle = '#000';
+      var grd, radius, rgb, tween;
+      if (this.lightOn) {
+        tween = this.lightOnTween;
+      } else {
+        tween = this.lightOffTween;
+      }
+      rgb = tween.value('rgb');
+      this.maskCtx.fillStyle = "rgb(" + rgb + "," + rgb + "," + rgb + ")";
+      radius = tween.value('r');
+      grd = this.maskCtx.createRadialGradient(this.viewX, this.viewY, radius / 4, this.viewX, this.viewY, radius);
+      grd.addColorStop(0, "rgba(255,255,255," + (tween.value('a')) + ")");
+      grd.addColorStop(1, 'rgba(255,255,255,0)');
       this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
       this.maskCtx.globalCompositeOperation = 'destination-out';
-      if (this.lightOn) {
-        radius = this.lightRadius;
-        grd = this.maskCtx.createRadialGradient(this.viewX, this.viewY, radius / 4, this.viewX, this.viewY, radius);
-        grd.addColorStop(0, 'white');
-        grd.addColorStop(1, 'rgba(255,255,255,0)');
-      } else {
-        radius = this.nightVisionRadius;
-        grd = this.maskCtx.createRadialGradient(this.viewX, this.viewY, radius / 4, this.viewX, this.viewY, radius);
-        grd.addColorStop(0, 'rgba(255,255,255, 0.4)');
-        grd.addColorStop(1, 'rgba(255,255,255,0)');
-      }
       this.maskCtx.fillStyle = grd;
       this.maskCtx.beginPath();
       this.maskCtx.arc(this.viewX, this.viewY, radius, 0, Math.PI * 2);
@@ -330,7 +371,7 @@
 
   window.openingText = function() {
     var j, len, messages, msg, results;
-    messages = [['.      ', .8, 1], ['   .   ', .3, 1.5], ['      .', -.2, 2], ["It's dark,              ", 1, 5], ["             isn't it?", 0, 6], ["Don't worry", 0, 10], ["your night vision should return soon", 0, 12]];
+    messages = [['. . .', -.2, 1], ["It's dark,              ", 1, 5], ["             isn't it?", 0, 6], ["Don't worry", 0, 10], ["your night vision should return soon", 0, 12]];
     results = [];
     for (j = 0, len = messages.length; j < len; j++) {
       msg = messages[j];
@@ -368,10 +409,8 @@
   window.up = window.right = window.down = window.left = false;
 
   window.onkeydown = function(e) {
-    var pixel;
     if (e.keyCode === 32) {
-      pixel = game.map.ctx.getImageData(game.pos.x, game.pos.y, 1, 1);
-      console.log(pixel.data);
+      window.toggleLight = true;
     }
     if (e.keyCode === 38 || e.keyCode === 90 || e.keyCode === 87) {
       window.up = true;
