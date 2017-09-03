@@ -10,49 +10,127 @@ body {
     overflow: hidden;
 }
 
+#settings-panel {
+    width: 240px;
+    background-color: white;
+    position: fixed;
+    top:0;
+    left: 0;
+    padding: 5px;
+    display: none;
+    /*bottom: 0;*/
+    /*border-right: 1px solid #ddd;*/
+}
+#settings-panel p {
+    margin: 10px 0;
+}
+#settings-panel input {
+    width: 40px;
+}
+
+
 #viewport {
     /*border: 2px solid red;*/
-    position: relative;
-    width: 1680px;
-    height: 1000px;
+    position: absolute;
     overflow: hidden;
-    /*background-color: rgba(255,0,255,0.2);*/
+    top:0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    /*background-color: lemonchiffon;*/
+}
+#overlay {
+    /*background-color: blueviolet;*/
+    position: absolute;
+    top:0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+#debug {
+    position: absolute;
+    top: 5px;
+    right: 5px;
 }
 #gameworld {
     position: absolute;
-    top:0;
-    left: 0;
+    top: 0px;
+    left: 0px;
     /*background-color: rgba(0,255,0,0.2);*/
-    width: 1680px;
-    height: 1000px;
+    width: 2000px;
+    height: 2000px;
+    /*background-image: url('images/floor.png');*/
 }
-#shadows {
-    position: absolute;
-    top:0;
-    left: 0;
-    /*background-color: rgba(0,0,255,0.2);*/
-    width: 1680px;
-    height: 950px;
-}
+/*#shadows {*/
+    /*position: absolute;*/
+    /*top:0;*/
+    /*left: 0;*/
+    /*!*background-color: rgba(0,0,255,0.2);*!*/
+    /*width: 1680px;*/
+    /*height: 950px;*/
+/*}*/
 #light-mask {
     position: absolute;
     top:0;
     left: 0;
-    /*background-color: rgba(0,0,255,0.2);*/
-    width: 1680px;
-    height: 950px;
 }
-#characters {
+/*#characters {*/
+    /*position: absolute;*/
+    /*top:0;*/
+    /*left: 0;*/
+    /*!*background-color: rgba(0,255,255,0.2);*!*/
+    /*width: 1680px;*/
+    /*height: 1000px;*/
+/*}*/
+#map, #shadows, #floor {
     position: absolute;
     top:0;
     left: 0;
-    /*background-color: rgba(0,255,255,0.2);*/
-    width: 1680px;
-    height: 1000px;
 }
-#floor {
-    /*background-image: url('images/floor.png');*/
-    width: 1680px;
-    height: 950px;
-    background-color: white;
+
+/*#debug {*/
+    /*position: fixed;*/
+    /*top: 5px;*/
+    /*right: 5px;*/
+    /*color: black;*/
+    /*font-size: 14pt;*/
+    /*background-color: #ff8;*/
+    /*padding: 2px 5px;*/
+/*}*/
+
+.text {
+    position: absolute;
+    top: 80%;
+    left: 20%;
+    right: 20%;
+    color: white;
+    font-size: 40pt;
+    font-family:sans-serif;
+    transform-origin: 50% 50%;
+    transform: rotate(0);
+    opacity: 1;
+    filter: blur(1px);
+    transition: all 2.0s;
+    transition-timing-function: ease-out;
+    display: block;
+    /*width: 600px;*/
+    height: 60px;
+    text-align: center;
+}
+
+.text.fade-out {
+    top: 40%;
+    /*left: 15%;*/
+    /*transform: rotate(-15deg);*/
+    opacity: 0;
+    font-size: 20pt;
+    filter: blur(20px);
+    transition: all 8s;
+    transition-timing-function: ease-in;
+
+}
+.text.fade-in {
+    top: 81%;
+    opacity: 0;
+    filter: blur(20px);
 }

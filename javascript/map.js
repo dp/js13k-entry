@@ -3,30 +3,151 @@
   var Map;
 
   Map = (function() {
-    function Map() {
-      this.w = 27;
-      this.h = 15;
-      this.tileSize = 60;
-      this.canvas = document.getElementById('floor');
+    function Map(canvasId, args) {
+      this.w = parseInt(args.width);
+      this.h = parseInt(args.height);
+      this.tileSize = parseInt(args.tileSize);
+      this.seed = parseInt(args.seed);
+      this.settings = {
+        initialDensity: parseInt(args.initialDensity) / 100,
+        reseedDensity: parseInt(args.reseedDensity) / 100,
+        smoothCorners: args.smoothCorners,
+        passes: args.passes,
+        reseedMethod: args.reseedMethod,
+        emptyTolerance: parseInt(args.emptyTolerance),
+        wallRoughness: parseInt(args.wallRoughness) / 100
+      };
+      this.canvas = document.getElementById(canvasId);
+      this.canvas.width = (this.w + 1) * this.tileSize;
+      this.canvas.height = (this.h + 1) * this.tileSize;
       this.ctx = this.canvas.getContext('2d');
+      this.floorCanvas = document.getElementById('floor');
+      this.floorCanvas.width = (this.w + 1) * this.tileSize;
+      this.floorCanvas.height = (this.h + 1) * this.tileSize;
+      this.floorCtx = this.floorCanvas.getContext('2d');
       this.generate();
     }
 
     Map.prototype.generate = function() {
       var j, k, ref, ref1, tiles, x, y;
       tiles = new Array(this.w);
+      this.wTiles = new Array(this.w);
       for (x = j = 0, ref = this.w; 0 <= ref ? j <= ref : j >= ref; x = 0 <= ref ? ++j : --j) {
         tiles[x] = new Array(this.h);
+        this.wTiles[x] = new Array(this.h);
         for (y = k = 0, ref1 = this.h; 0 <= ref1 ? k <= ref1 : k >= ref1; y = 0 <= ref1 ? ++k : --k) {
-          if (Math.random() < 0.25 || x === 0 || y === 0 || x === this.w || y === this.h) {
-            tiles[x][y] = {
-              style: 'W',
-              sides: {}
-            };
+          if (this.seededRandom() < this.settings.initialDensity || x === 0 || y === 0 || x === this.w || y === this.h) {
+            tiles[x][y] = true;
           }
         }
       }
       return this.tiles = tiles;
+    };
+
+    Map.prototype.generateCellular = function() {
+      var j, len, ref, results, row, tile, x, y;
+      ref = this.tiles;
+      results = [];
+      for (x = j = 0, len = ref.length; j < len; x = ++j) {
+        row = ref[x];
+        results.push((function() {
+          var k, len1, results1;
+          results1 = [];
+          for (y = k = 0, len1 = row.length; k < len1; y = ++k) {
+            tile = row[y];
+            if (tile) {
+              results1.push(this.tiles[x][y] = {
+                style: 'W',
+                sides: []
+              });
+            } else {
+              results1.push(void 0);
+            }
+          }
+          return results1;
+        }).call(this));
+      }
+      return results;
+    };
+
+    Map.prototype.cellularPass = function(passType) {
+      var count, j, k, l, m, range, ref, ref1, ref2, ref3, x, y;
+      for (x = j = 1, ref = this.w; 1 <= ref ? j < ref : j > ref; x = 1 <= ref ? ++j : --j) {
+        for (y = k = 1, ref1 = this.h; 1 <= ref1 ? k < ref1 : k > ref1; y = 1 <= ref1 ? ++k : --k) {
+          this.wTiles[x][y] = this.tiles[x][y];
+          if (passType.match("combine")) {
+            if (this.nearbyTiles(x, y, 1) >= 5) {
+              if (passType === 'combine-aggressive') {
+                this.tiles[x][y] = true;
+              }
+              this.wTiles[x][y] = true;
+            } else {
+              if (passType === 'combine-aggressive') {
+                this.tiles[x][y] = null;
+              }
+              this.wTiles[x][y] = null;
+            }
+          } else if (passType.match("reseed")) {
+            if (passType === "reseed-huge") {
+              range = 7;
+            } else if (passType === "reseed-large") {
+              range = 5;
+            } else if (passType === "reseed-medium") {
+              range = 4;
+            } else {
+              range = 3;
+            }
+            if (this.settings.reseedMethod === 'top') {
+              if (this.nearbyTiles(x + range, y + range, range) <= this.settings.emptyTolerance) {
+                if (this.seededRandom() < this.settings.reseedDensity) {
+                  this.wTiles[x][y] = true;
+                }
+                this.tiles[x][y] = this.wTiles[x][y];
+              }
+            } else {
+              if (this.nearbyTiles(x, y, range) <= this.settings.emptyTolerance) {
+                if (this.seededRandom() < this.settings.reseedDensity) {
+                  this.wTiles[x][y] = true;
+                }
+              }
+            }
+          } else if (passType === 'remove-singles') {
+            count = this.nearbyTiles(x, y, 1);
+            if (count === 1 && this.tiles[x][y]) {
+              this.wTiles[x][y] = null;
+            } else if (count === 8 && !this.tiles[x][y]) {
+              this.wTiles[x][y] = true;
+            }
+          }
+        }
+      }
+      for (x = l = 1, ref2 = this.w; 1 <= ref2 ? l < ref2 : l > ref2; x = 1 <= ref2 ? ++l : --l) {
+        for (y = m = 1, ref3 = this.h; 1 <= ref3 ? m < ref3 : m > ref3; y = 1 <= ref3 ? ++m : --m) {
+          this.tiles[x][y] = this.wTiles[x][y];
+        }
+      }
+      return true;
+    };
+
+    Map.prototype.nearbyTiles = function(x, y, dist) {
+      var count, j, k, ref, ref1, ref2, ref3, xo, yo;
+      count = 0;
+      for (xo = j = ref = x - dist, ref1 = x + dist; ref <= ref1 ? j <= ref1 : j >= ref1; xo = ref <= ref1 ? ++j : --j) {
+        for (yo = k = ref2 = y - dist, ref3 = y + dist; ref2 <= ref3 ? k <= ref3 : k >= ref3; yo = ref2 <= ref3 ? ++k : --k) {
+          if (xo < 0 || xo >= this.w || yo < 0 || yo >= this.h) {
+            count += 1;
+          } else {
+            if (this.tiles[xo][yo]) {
+              count += 1;
+            }
+          }
+        }
+      }
+      return count;
+    };
+
+    Map.prototype.nearbyTile = function(x, y, xOffset, yOffset) {
+      return this.tiles[x + xOffset][y + yOffset];
     };
 
     Map.prototype.findEdges = function() {
@@ -67,6 +188,7 @@
                 y: (y + 1) * this.tileSize
               }
             };
+            tile.surrounded = this.nearbyTiles(x, y, 1) === 9;
           }
         }
       }
@@ -74,16 +196,44 @@
     };
 
     Map.prototype.moveCorners = function() {
-      var j, mx, my, ref, results, variation, x, y;
-      variation = 20;
+      var j, key, mx, my, ox, oy, ref, results, variation, x, y;
+      variation = this.settings.wallRoughness * this.tileSize;
       results = [];
       for (x = j = 0, ref = this.w; 0 <= ref ? j < ref : j > ref; x = 0 <= ref ? ++j : --j) {
         results.push((function() {
           var k, ref1, ref2, ref3, ref4, ref5, results1;
           results1 = [];
           for (y = k = 0, ref1 = this.h; 0 <= ref1 ? k < ref1 : k > ref1; y = 0 <= ref1 ? ++k : --k) {
-            mx = ((x + 1) * this.tileSize) + randInt(-variation / 2, variation);
-            my = ((y + 1) * this.tileSize) + randInt(-variation / 2, variation);
+            ox = oy = 0;
+            if (this.settings.smoothCorners) {
+              key = 0;
+              if (this.tiles[x][y]) {
+                key += 1;
+              }
+              if (this.tiles[x + 1][y]) {
+                key += 2;
+              }
+              if (this.tiles[x][y + 1]) {
+                key += 4;
+              }
+              if (this.tiles[x + 1][y + 1]) {
+                key += 8;
+              }
+              if (key === 1 || key === 4 || key === 11 || key === 14) {
+                ox = -1;
+              } else if (key === 2 || key === 7 || key === 8 || key === 13) {
+                ox = 1;
+              }
+              if (key === 1 || key === 2 || key === 14 || key === 14) {
+                oy = -1;
+              } else if (key === 4 || key === 7 || key === 8 || key === 11) {
+                oy = 1;
+              }
+              ox = ox * this.tileSize / 4;
+              oy = oy * this.tileSize / 4;
+            }
+            mx = ((x + 1) * this.tileSize) + ox + this.randInt(-variation / 2, variation);
+            my = ((y + 1) * this.tileSize) + oy + this.randInt(-variation / 2, variation);
             if ((ref2 = this.tiles[x][y]) != null) {
               ref2.corners.br = {
                 x: mx,
@@ -114,7 +264,7 @@
     };
 
     Map.prototype.findSides = function() {
-      var j, len, ref, results, row, tile, x, y;
+      var j, len, line, ref, results, row, tile, x, y;
       ref = this.tiles;
       results = [];
       for (x = j = 0, len = ref.length; j < len; x = ++j) {
@@ -127,36 +277,44 @@
             if (tile) {
               tile.lines = [];
               if (!tile.sides.above) {
-                tile.lines.push({
+                line = {
                   x1: tile.corners.tl.x,
                   y1: tile.corners.tl.y,
                   x2: tile.corners.tr.x,
                   y2: tile.corners.tr.y
-                });
+                };
+                line.stuff = this.findNormals(line.x1, line.y1, line.x2, line.y2);
+                tile.lines.push(line);
               }
               if (!tile.sides.left) {
-                tile.lines.push({
+                line = {
                   x1: tile.corners.tl.x,
                   y1: tile.corners.tl.y,
                   x2: tile.corners.bl.x,
                   y2: tile.corners.bl.y
-                });
+                };
+                line.stuff = this.findNormals(line.x2, line.y2, line.x1, line.y1);
+                tile.lines.push(line);
               }
               if (!tile.sides.right) {
-                tile.lines.push({
+                line = {
                   x1: tile.corners.tr.x,
                   y1: tile.corners.tr.y,
                   x2: tile.corners.br.x,
                   y2: tile.corners.br.y
-                });
+                };
+                line.stuff = this.findNormals(line.x1, line.y1, line.x2, line.y2);
+                tile.lines.push(line);
               }
               if (!tile.sides.below) {
-                results1.push(tile.lines.push({
+                line = {
                   x1: tile.corners.bl.x,
                   y1: tile.corners.bl.y,
                   x2: tile.corners.br.x,
                   y2: tile.corners.br.y
-                }));
+                };
+                line.stuff = this.findNormals(line.x2, line.y2, line.x1, line.y1);
+                results1.push(tile.lines.push(line));
               } else {
                 results1.push(void 0);
               }
@@ -165,9 +323,26 @@
             }
           }
           return results1;
-        })());
+        }).call(this));
       }
       return results;
+    };
+
+    Map.prototype.findNormals = function(x1, y1, x2, y2) {
+      var angDist, mp;
+      mp = 1;
+      angDist = Vectors.angleDistBetweenPoints({
+        x: x1,
+        y: y1
+      }, {
+        x: x2,
+        y: y2
+      });
+      return {
+        mp: mp,
+        ang: angDist.angle,
+        normal: angDist.angle - Math.PI / 2
+      };
     };
 
     Map.prototype.print = function() {
@@ -182,20 +357,35 @@
     };
 
     Map.prototype.draw = function() {
+      var j, len, passType, ref;
+      ref = this.settings.passes;
+      for (j = 0, len = ref.length; j < len; j++) {
+        passType = ref[j];
+        this.cellularPass(passType);
+      }
+      this.generateCellular();
       this.findEdges();
       this.moveCorners();
       this.findSides();
-      this.ctx.fillStyle = '#888';
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.drawFloor();
       this.drawWalls(this.ctx);
-      return this.drawEdges(this.ctx);
+      return this.imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    };
+
+    Map.prototype.pixelAt = function(x, y) {
+      var alpha, blue, green, offset, red;
+      offset = ((this.canvas.width * y) + x) * 4;
+      red = this.imageData.data[offset];
+      green = this.imageData.data[offset + 1];
+      blue = this.imageData.data[offset + 2];
+      alpha = this.imageData.data[offset + 3];
+      return [red, green, blue, alpha];
     };
 
     Map.prototype.drawWalls = function(ctx) {
       var j, len, ref, results, row, tile, x, y;
-      ctx.fillStyle = '#111';
-      ctx.strokeStyle = '#111';
+      ctx.fillStyle = '#686665';
+      ctx.strokeStyle = '#686665';
       ref = this.tiles;
       results = [];
       for (x = j = 0, len = ref.length; j < len; x = ++j) {
@@ -246,57 +436,81 @@
     };
 
     Map.prototype.drawFloor = function() {
-      var colour, hue, hue1, hue2, i, j, k, l, m, results;
-      hue1 = randInt(0, 360);
+      var brightness, colour, count, hue, hue1, hue2, i, j, k, l, m, n, ref, ref1, ref2, ref3, ref4, results, x, y;
+      this.floorCtx.fillStyle = '#888';
+      this.floorCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      hue1 = this.randInt(0, 360);
       hue2 = hue1 + 180;
-      for (i = j = 0; j <= 100; i = ++j) {
-        if (Math.random() > 0.5) {
-          hue = hue1;
-        } else {
-          hue = hue2;
+      for (x = j = 0, ref = this.w; 0 <= ref ? j <= ref : j >= ref; x = 0 <= ref ? ++j : --j) {
+        for (y = k = 0, ref1 = this.h; 0 <= ref1 ? k <= ref1 : k >= ref1; y = 0 <= ref1 ? ++k : --k) {
+          colour = "hsla(" + (this.randHue(hue1, hue2)) + "," + (this.randInt(0, 5)) + "%," + (this.randInt(60, 20)) + "%,0.5)";
+          this.drawRandomisedRect(x * this.tileSize + this.randInt(0, 10), y * this.tileSize + this.randInt(0, 10), this.tileSize + this.randInt(0, 20), this.tileSize + this.randInt(0, 20), colour, 5);
         }
-        colour = "hsla(" + (hue + randInt(-20, 40)) + "," + (randInt(0, 10)) + "%," + (randInt(30, 50)) + "%,0.5)";
-        this.drawRandomisedRect(randInt(-100, 1600), randInt(-100, 900), randInt(100, 300), randInt(100, 300), colour, 50);
       }
-      for (i = k = 0; k <= 100; i = ++k) {
-        if (Math.random() > 0.5) {
-          hue = hue1;
-        } else {
-          hue = hue2;
+      for (x = l = 0, ref2 = this.w; 0 <= ref2 ? l <= ref2 : l >= ref2; x = 0 <= ref2 ? ++l : --l) {
+        for (y = m = 0, ref3 = this.h; 0 <= ref3 ? m <= ref3 : m >= ref3; y = 0 <= ref3 ? ++m : --m) {
+          if (Math.random() > 0.5) {
+            hue = hue1;
+          } else {
+            hue = hue2;
+          }
+          colour = "hsla(" + (this.randHue(hue1, hue2)) + "," + (this.randInt(0, 5)) + "%," + (this.randInt(60, 20)) + "%,0.8)";
+          this.drawRandomisedRect(x * this.tileSize + this.randInt(0, 10), y * this.tileSize + this.randInt(0, 10), this.tileSize + this.randInt(0, 20), this.tileSize + this.randInt(0, 20), colour, 5);
         }
-        colour = "hsla(" + (hue + randInt(-10, 20)) + "," + (randInt(0, 10)) + "%," + (randInt(30, 70)) + "%,0.4)";
-        this.drawRandomisedRect(randInt(-100, 1600), randInt(-100, 900), randInt(50, 100), randInt(50, 100), colour, 10);
-      }
-      for (i = l = 0; l <= 1000; i = ++l) {
-        if (Math.random() > 0.5) {
-          hue = hue1;
-        } else {
-          hue = hue2;
-        }
-        colour = "hsla(" + (hue + randInt(-10, 20)) + "," + (randInt(0, 5)) + "%," + (randInt(60, 40)) + "%,0.3)";
-        this.drawRandomisedRect(randInt(-10, 1660), randInt(-10, 950), randInt(10, 60), randInt(10, 60), colour, 10);
       }
       results = [];
-      for (i = m = 0; m <= 10000; i = ++m) {
-        if (Math.random() > 0.5) {
-          hue = hue1;
-        } else {
-          hue = hue2;
-        }
-        colour = "hsla(" + (hue + randInt(-10, 20)) + "," + (randInt(0, 0)) + "%," + (randInt(60, 40)) + "%,0.5)";
-        results.push(this.drawRandomisedRect(randInt(-10, 1660), randInt(-10, 950), randInt(10, 30), randInt(10, 30), colour, 5));
+      for (x = n = 0, ref4 = this.w; 0 <= ref4 ? n <= ref4 : n >= ref4; x = 0 <= ref4 ? ++n : --n) {
+        results.push((function() {
+          var o, ref5, results1;
+          results1 = [];
+          for (y = o = 0, ref5 = this.h; 0 <= ref5 ? o <= ref5 : o >= ref5; y = 0 <= ref5 ? ++o : --o) {
+            if (!(this.tiles[x][y] && this.tiles[x][y].surrounded)) {
+              count = this.nearbyTiles(x, y, 2);
+              brightness = ((1 - (count / 20)) * 80) / 2 + 20;
+              results1.push((function() {
+                var p, ref6, results2;
+                results2 = [];
+                for (i = p = 0, ref6 = this.randInt(0, count * 2); 0 <= ref6 ? p <= ref6 : p >= ref6; i = 0 <= ref6 ? ++p : --p) {
+                  colour = "hsla(" + (this.randHue(hue1, hue2)) + "," + (this.randInt(0, 10)) + "%," + (this.randInt(brightness, 20)) + "%,0.8)";
+                  results2.push(this.drawCircle(x * this.tileSize + this.randInt(0, this.tileSize), y * this.tileSize + this.randInt(0, this.tileSize), this.randInt(3, 7), colour));
+                }
+                return results2;
+              }).call(this));
+            } else {
+              results1.push(void 0);
+            }
+          }
+          return results1;
+        }).call(this));
       }
       return results;
     };
 
     Map.prototype.drawRandomisedRect = function(x, y, w, h, colour, variation) {
-      this.ctx.fillStyle = colour;
-      this.ctx.beginPath();
-      this.ctx.moveTo(x + randInt(0, variation), y + randInt(0, variation));
-      this.ctx.lineTo(x + w + randInt(0, variation), y + randInt(0, variation));
-      this.ctx.lineTo(x + w + randInt(0, variation), y + h + randInt(0, variation));
-      this.ctx.lineTo(x + randInt(0, variation), y + h + randInt(0, variation));
-      return this.ctx.fill();
+      this.floorCtx.fillStyle = colour;
+      this.floorCtx.beginPath();
+      this.floorCtx.moveTo(x + this.randInt(0, variation), y + this.randInt(0, variation));
+      this.floorCtx.lineTo(x + w + this.randInt(0, variation), y + this.randInt(0, variation));
+      this.floorCtx.lineTo(x + w + this.randInt(0, variation), y + h + this.randInt(0, variation));
+      this.floorCtx.lineTo(x + this.randInt(0, variation), y + h + this.randInt(0, variation));
+      return this.floorCtx.fill();
+    };
+
+    Map.prototype.randHue = function(hue1, hue2) {
+      var hue;
+      if (Math.random() > 0.5) {
+        hue = hue1;
+      } else {
+        hue = hue2;
+      }
+      return hue + this.randInt(-10, 20);
+    };
+
+    Map.prototype.drawCircle = function(x, y, r, colour) {
+      this.floorCtx.fillStyle = colour;
+      this.floorCtx.beginPath();
+      this.floorCtx.arc(x, y, r, 0, Math.PI * 2);
+      return this.floorCtx.fill();
     };
 
     Map.prototype.lines = function() {
@@ -318,13 +532,23 @@
                 }, {
                   x: line.x2,
                   y: line.y2
-                }
+                }, line.stuff
               ]);
             }
           }
         }
       }
       return lines;
+    };
+
+    Map.prototype.seededRandom = function() {
+      var x;
+      x = Math.sin(this.seed++) * 10000;
+      return x - Math.floor(x);
+    };
+
+    Map.prototype.randInt = function(min, range) {
+      return Math.floor(this.seededRandom() * range) + min;
     };
 
     return Map;

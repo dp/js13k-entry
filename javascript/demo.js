@@ -3,32 +3,93 @@
   var Game;
 
   Game = (function() {
-    function Game() {
+    function Game(mapParams, gameParams) {
+      this.map = new Map('map', mapParams);
+      this.map.canvas.style.width = this.map.canvas.width + 'px';
+      this.map.draw();
       this.shadowCanvas = document.getElementById('shadows');
       this.shadowCtx = this.shadowCanvas.getContext('2d');
       this.maskCanvas = document.getElementById('light-mask');
       this.maskCtx = this.maskCanvas.getContext('2d');
-      this.map = new Map();
-      this.map.generate();
-      this.map.draw();
+      this.shadowCanvas.width = (this.map.w + 1) * this.map.tileSize;
+      this.shadowCanvas.height = (this.map.h + 1) * this.map.tileSize;
+      this.maskCanvas.width = window.innerWidth;
+      this.maskCanvas.height = window.innerHeight;
+      this.maskCtx.fillStyle = '#000';
+      this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
+      this.gameWorld = byId('gameworld');
       this.pos = {
-        x: 10,
-        y: 10
+        x: gameParams.startPos[0] * mapParams.tileSize,
+        y: gameParams.startPos[1] * mapParams.tileSize
       };
       this.changed = true;
-      this.points = [];
       this.lines = [];
+      this.speed = 200;
+      this.lightRadius = 500;
+      this.nightVisionRadius = 0;
+      this.maxNightVisionRadius = 200;
+      this.nightVisionChangeRate = 10;
+      this.lightOn = false;
       this.initLines();
+      openingText();
+      setTimeout((function() {
+        return window.requestAnimationFrame(update);
+      }), 10000);
     }
 
     Game.prototype.update = function(timestamp) {
-      var delta;
+      var delta, newPos, pixel, testRange;
       if (this.lastTimestamp) {
         delta = (timestamp - this.lastTimestamp) / 1000;
       } else {
         delta = 0;
       }
       this.lastTimestamp = timestamp;
+      if (!this.lightOn) {
+        if (this.nightVisionRadius < this.maxNightVisionRadius) {
+          this.changed = true;
+          this.nightVisionRadius += this.nightVisionChangeRate * delta;
+          if (this.nightVisionRadius > this.maxNightVisionRadius) {
+            this.nightVisionRadius = this.maxNightVisionRadius;
+          }
+        }
+      }
+      if (right || left || up || down) {
+        testRange = 9;
+        newPos = {
+          x: this.pos.x,
+          y: this.pos.y
+        };
+        if (right) {
+          newPos.x = this.pos.x + this.speed * delta;
+          pixel = this.map.pixelAt(Math.floor(newPos.x) + testRange, Math.floor(newPos.y));
+          if (pixel[3] < 10) {
+            this.pos.x = newPos.x;
+          }
+        }
+        if (left) {
+          newPos.x = this.pos.x - this.speed * delta;
+          pixel = this.map.pixelAt(Math.floor(newPos.x) - testRange, Math.floor(newPos.y));
+          if (pixel[3] < 10) {
+            this.pos.x = newPos.x;
+          }
+        }
+        if (down) {
+          newPos.y = this.pos.y + this.speed * delta;
+          pixel = this.map.pixelAt(Math.floor(newPos.x), Math.floor(newPos.y) + testRange);
+          if (pixel[3] < 10) {
+            this.pos.y = newPos.y;
+          }
+        }
+        if (up) {
+          newPos.y = this.pos.y - this.speed * delta;
+          pixel = this.map.pixelAt(Math.floor(newPos.x), Math.floor(newPos.y) - testRange);
+          if (pixel[3] < 10) {
+            this.pos.y = newPos.y;
+          }
+        }
+        this.changed = true;
+      }
       return this.draw(delta);
     };
 
@@ -39,34 +100,42 @@
       this.shadowCtx.clearRect(0, 0, this.shadowCanvas.width, this.shadowCanvas.height);
       this.drawOrb();
       this.drawLineShadows();
+      this.positionMap();
       this.drawLightMask();
-      this.map.drawWalls(this.shadowCtx);
-      this.map.drawEdges(this.shadowCtx);
       return this.changed = false;
     };
 
     Game.prototype.drawOrb = function() {
       var grd, radius;
-      radius = 60;
-      grd = this.maskCtx.createRadialGradient(this.pos.x, this.pos.y, 10, this.pos.x, this.pos.y, radius);
-      grd.addColorStop(0, 'rgba(60,255,255,0.6)');
-      grd.addColorStop(0.5, 'rgba(60,255,255,0.2)');
-      grd.addColorStop(1, 'rgba(60,255,255,0)');
-      this.shadowCtx.fillStyle = grd;
-      this.shadowCtx.beginPath();
-      this.shadowCtx.arc(this.pos.x, this.pos.y, radius, 0, Math.PI * 2);
-      this.shadowCtx.fill();
-      grd = this.maskCtx.createRadialGradient(this.pos.x + 3, this.pos.y - 3, 2, this.pos.x, this.pos.y, 7);
-      grd.addColorStop(0, '#fff');
-      grd.addColorStop(1, '#0ff');
-      this.shadowCtx.fillStyle = grd;
-      this.shadowCtx.beginPath();
-      this.shadowCtx.arc(this.pos.x, this.pos.y, 7, 0, Math.PI * 2);
-      this.shadowCtx.fill();
-      this.shadowCtx.strokeStyle = '#aff';
-      this.shadowCtx.beginPath();
-      this.shadowCtx.arc(this.pos.x, this.pos.y, 8, 0, Math.PI * 2);
-      return this.shadowCtx.stroke();
+      radius = 20;
+      if (this.lightOn) {
+        grd = this.maskCtx.createRadialGradient(this.pos.x, this.pos.y, 10, this.pos.x, this.pos.y, radius);
+        grd.addColorStop(0, 'rgba(60,255,255,0.4)');
+        grd.addColorStop(0.5, 'rgba(60,255,255,0.2)');
+        grd.addColorStop(1, 'rgba(60,255,255,0)');
+        this.shadowCtx.fillStyle = grd;
+        this.shadowCtx.beginPath();
+        this.shadowCtx.arc(this.pos.x, this.pos.y, radius, 0, Math.PI * 2);
+        this.shadowCtx.fill();
+        grd = this.maskCtx.createRadialGradient(this.pos.x + 3, this.pos.y - 3, 2, this.pos.x, this.pos.y, 7);
+        grd.addColorStop(0, '#fff');
+        grd.addColorStop(1, '#0ff');
+        this.shadowCtx.fillStyle = grd;
+        this.shadowCtx.beginPath();
+        this.shadowCtx.arc(this.pos.x, this.pos.y, 7, 0, Math.PI * 2);
+        this.shadowCtx.fill();
+        this.shadowCtx.strokeStyle = '#fff';
+        this.shadowCtx.beginPath();
+        this.shadowCtx.arc(this.pos.x, this.pos.y, 8, 0, Math.PI * 2);
+        return this.shadowCtx.stroke();
+      } else {
+        this.shadowCtx.strokeStyle = '#066';
+        this.shadowCtx.fillStyle = '#288';
+        this.shadowCtx.beginPath();
+        this.shadowCtx.arc(this.pos.x, this.pos.y, 8, 0, Math.PI * 2);
+        this.shadowCtx.stroke();
+        return this.shadowCtx.fill();
+      }
     };
 
     Game.prototype.drawPoints = function() {
@@ -114,23 +183,46 @@
     };
 
     Game.prototype.drawLineShadows = function() {
-      var angDist1, angDist2, j, l, len, p1, p2, ref, results;
+      var angDist1, angDist2, angle, delta, drawLines, j, k, l, len, len1, lineCheckDist, p1, p2, ref;
+      lineCheckDist = this.lightRadius + 20;
+      this.shadowCtx.lineWidth = 6;
+      drawLines = [];
       ref = this.lines;
-      results = [];
       for (j = 0, len = ref.length; j < len; j++) {
         l = ref[j];
+        if ((Math.abs(l[0].x - this.pos.x) < lineCheckDist) && (Math.abs(l[0].y - this.pos.y) < lineCheckDist)) {
+          drawLines.push(l);
+        }
+        this.shadowCtx.strokeStyle = '#888685';
+        this.shadowCtx.beginPath();
+        this.shadowCtx.moveTo(l[0].x, l[0].y);
+        this.shadowCtx.lineTo(l[1].x, l[1].y);
+        this.shadowCtx.stroke();
+      }
+      for (k = 0, len1 = drawLines.length; k < len1; k++) {
+        l = drawLines[k];
         p1 = l[0];
         p2 = l[1];
         angDist1 = Vectors.angleDistBetweenPoints(this.pos, p1);
         angDist2 = Vectors.angleDistBetweenPoints(this.pos, p2);
-        if (angDist1.distance < 300 || angDist2.distance < 300) {
-          this.shadowCtx.fillStyle = 'rgba(20,20,20,0.6)';
-          results.push(this.drawShadow(p1, p2, angDist1.angle, angDist2.angle));
-        } else {
-          results.push(void 0);
+        if (angDist1.distance < this.lightRadius || angDist2.distance < this.lightRadius) {
+          if (l[2]) {
+            angle = angDist1.angle;
+            delta = angle - l[2].ang;
+            if (delta < Math.PI) {
+              delta += Math.PI * 2;
+            }
+            if (delta > Math.PI) {
+              delta -= Math.PI * 2;
+            }
+            if (delta < 0) {
+              this.shadowCtx.fillStyle = 'rgba(20,20,20,0.6)';
+              this.drawShadow(p1, p2, angDist1.angle, angDist2.angle);
+            }
+          }
         }
       }
-      return results;
+      return this.shadowCtx.lineWidth = 1;
     };
 
     Game.prototype.drawShadow = function(p1, p2, ang1, ang2) {
@@ -148,18 +240,33 @@
 
     Game.prototype.drawLightMask = function() {
       var grd, radius;
-      radius = 500;
       this.maskCtx.fillStyle = '#000';
-      this.maskCtx.fillRect(0, 0, 1680, 950);
+      this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
       this.maskCtx.globalCompositeOperation = 'destination-out';
-      grd = this.maskCtx.createRadialGradient(this.pos.x, this.pos.y, radius / 4, this.pos.x, this.pos.y, radius);
-      grd.addColorStop(0, 'white');
-      grd.addColorStop(1, 'rgba(255,255,255,0)');
+      if (this.lightOn) {
+        radius = this.lightRadius;
+        grd = this.maskCtx.createRadialGradient(this.viewX, this.viewY, radius / 4, this.viewX, this.viewY, radius);
+        grd.addColorStop(0, 'white');
+        grd.addColorStop(1, 'rgba(255,255,255,0)');
+      } else {
+        radius = this.nightVisionRadius;
+        grd = this.maskCtx.createRadialGradient(this.viewX, this.viewY, radius / 4, this.viewX, this.viewY, radius);
+        grd.addColorStop(0, 'rgba(255,255,255, 0.4)');
+        grd.addColorStop(1, 'rgba(255,255,255,0)');
+      }
       this.maskCtx.fillStyle = grd;
       this.maskCtx.beginPath();
-      this.maskCtx.arc(this.pos.x, this.pos.y, radius, 0, Math.PI * 2);
+      this.maskCtx.arc(this.viewX, this.viewY, radius, 0, Math.PI * 2);
       this.maskCtx.fill();
-      return this.maskCtx.globalCompositeOperation = 'source-over';
+      this.maskCtx.globalCompositeOperation = 'source-over';
+      if (false) {
+        this.maskCtx.strokeStyle = 'red';
+        this.maskCtx.lineWidth = 5;
+        this.maskCtx.beginPath();
+        this.maskCtx.arc(this.viewX, this.viewY, radius, 0, Math.PI * 2);
+        this.maskCtx.stroke();
+        return this.maskCtx.lineWidth = 1;
+      }
     };
 
     Game.prototype.updateMousePos = function(e) {
@@ -184,12 +291,64 @@
       return this.lines = this.map.lines();
     };
 
+    Game.prototype.positionMap = function() {
+      this.viewX = window.innerWidth / 2;
+      this.viewY = window.innerHeight / 2;
+      this.gameWorld.style.left = this.viewX - this.pos.x + 'px';
+      return this.gameWorld.style.top = this.viewY - this.pos.y + 'px';
+    };
+
     return Game;
 
   })();
 
+  window.say = function(msg, holdTime, delay) {
+    var el, o;
+    msg = msg.replace(/\s/g, '&nbsp;').replace("'", '&rsquo;');
+    holdTime = 2000 + holdTime * 1000;
+    el = document.createElement('span');
+    el.innerHTML = msg;
+    el.className = 'text fade-in';
+    o = document.getElementById('overlay');
+    o.appendChild(el);
+    setTimeout((function() {
+      return el.className = 'text';
+    }), 100);
+    setTimeout((function() {
+      return el.className = 'text fade-out';
+    }), holdTime);
+    return setTimeout((function() {
+      return o.removeChild(el);
+    }), holdTime + 10000);
+  };
+
+  window.saySoon = function(msg, holdTime, delay) {
+    return setTimeout((function() {
+      return say(msg, holdTime);
+    }), delay * 1000);
+  };
+
+  window.openingText = function() {
+    var j, len, messages, msg, results;
+    messages = [['.      ', .8, 1], ['   .   ', .3, 1.5], ['      .', -.2, 2], ["It's dark,              ", 1, 5], ["             isn't it?", 0, 6], ["Don't worry", 0, 10], ["your night vision should return soon", 0, 12]];
+    results = [];
+    for (j = 0, len = messages.length; j < len; j++) {
+      msg = messages[j];
+      results.push(saySoon(msg[0], msg[1], msg[2]));
+    }
+    return results;
+  };
+
+  window.randSeed = Math.floor(Math.random() * 10000);
+
+  window.randomX = function() {
+    var x;
+    x = Math.sin(randSeed++) * 10000;
+    return x - Math.floor(x);
+  };
+
   window.randInt = function(min, range) {
-    return Math.floor(Math.random() * range) + min;
+    return Math.floor(randomX() * range) + min;
   };
 
   window.update = function(timestamp) {
@@ -198,10 +357,70 @@
     return true;
   };
 
+  window.byId = function(elementId) {
+    return document.getElementById(elementId);
+  };
+
+  window.debug = function(msg) {
+    return document.getElementById('debug').innerHTML = msg;
+  };
+
+  window.up = window.right = window.down = window.left = false;
+
+  window.onkeydown = function(e) {
+    var pixel;
+    if (e.keyCode === 32) {
+      pixel = game.map.ctx.getImageData(game.pos.x, game.pos.y, 1, 1);
+      console.log(pixel.data);
+    }
+    if (e.keyCode === 38 || e.keyCode === 90 || e.keyCode === 87) {
+      window.up = true;
+    }
+    if (e.keyCode === 39 || e.keyCode === 68) {
+      window.right = true;
+    }
+    if (e.keyCode === 40 || e.keyCode === 83) {
+      window.down = true;
+    }
+    if (e.keyCode === 37 || e.keyCode === 65 || e.keyCode === 81) {
+      return window.left = true;
+    }
+  };
+
+  window.onkeyup = function(e) {
+    if (e.keyCode === 38 || e.keyCode === 90 || e.keyCode === 87) {
+      window.up = false;
+    }
+    if (e.keyCode === 39 || e.keyCode === 68) {
+      window.right = false;
+    }
+    if (e.keyCode === 40 || e.keyCode === 83) {
+      window.down = false;
+    }
+    if (e.keyCode === 37 || e.keyCode === 65 || e.keyCode === 81) {
+      return window.left = false;
+    }
+  };
+
   window.initGame = function() {
-    window.game = new Game();
-    window.requestAnimationFrame(update);
-    return document.onmousemove = game.updateMousePos;
+    var gameParams, mapParams;
+    mapParams = {
+      seed: 559516,
+      width: 120,
+      height: 80,
+      tileSize: 50,
+      initialDensity: 47,
+      reseedDensity: 51,
+      smoothCorners: true,
+      reseedMethod: 'top',
+      emptyTolerance: 6,
+      wallRoughness: 25,
+      passes: ["combine-aggressive", "reseed-medium", "combine-aggressive", "reseed-small", "combine-aggressive", "remove-singles"]
+    };
+    gameParams = {
+      startPos: [76, 49]
+    };
+    return window.game = new Game(mapParams, gameParams);
   };
 
   window.Game = Game;

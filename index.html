@@ -9,17 +9,21 @@
     <script src='javascript/vectors.js'></script>
     <script src='javascript/map.js'></script>
 </head>
-<body onload='initGame()'>
+<body onload='initGame()' onkeydownx="onkeydown(e)" onkeyupx="onkeyup(e)">
 <div id="viewport">
     <div id="gameworld">
-        <canvas id="floor" width="1680" height="950"></canvas>
+        <canvas id="floor"></canvas>
+        <canvas id="shadows"></canvas>
+        <canvas id="map"></canvas>
         <div id="characters"></div>
-        <canvas id="shadows" width="1680" height="950"></canvas>
-        <canvas id="light-mask" width="1680" height="950"></canvas>
+    </div>
+    <canvas id="light-mask"></canvas>
+    <div id="overlay">
     </div>
 </div>
-
-<p id="debug"></p>
+<div id="settings-panel">
+    <h2>Settings</h2>
+</div>
 </body>
 </html>
 

@@ -1,0 +1,29 @@
+#settings-panel {
+    width: 250px;
+    /*border-right: 1px solid #ddd;*/
+}
+#settings-panel p {
+    margin: 10px 0;
+}
+#settings-panel input {
+    width: 40px;
+}
+input#seed {
+    width: 60px;
+}
+input#smooth {
+    width: inherit;
+}
+#scrollbox {
+    position: fixed;
+    background-color: aliceblue;
+    left: 260px;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: scroll;
+
+}
+#map {
+    transform-origin: top left;
+}
