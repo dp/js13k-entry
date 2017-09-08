@@ -1,5 +1,8 @@
 class Map
 
+    # for use with dungeon generator
+    # - comment swap the two "@canvas = document ..." lines 18,19
+    # - change the was stroke/fill colours in drawWalls, lines  231 +
     constructor: (canvasId, args) ->
         @w = parseInt(args.width)
         @h = parseInt(args.height)
@@ -225,8 +228,12 @@ class Map
 
     drawWalls: (ctx) ->
         # colours here https://www.computerhope.com/htmcolor.htm
-        ctx.fillStyle = '#686665'
-        ctx.strokeStyle = '#686665'
+        ctx.fillStyle = '#585655'
+        ctx.strokeStyle = '#585655'
+#        ctx.fillStyle = '#686665'
+#        ctx.strokeStyle = '#686665'
+#        ctx.fillStyle = '#ccc'
+#        ctx.strokeStyle = '#ccc'
         for row, x in @tiles
             for tile, y in row
                 if tile
@@ -256,10 +263,20 @@ class Map
         @floorCtx.fillRect(0,0, @canvas.width, @canvas.height)
         hue1 = @randInt(0,360)
         hue2 = hue1 + 180
+        v1 = 5
+        v2 = 10
+        v3 = 3
+        v4 = 1
+        v5 = 4
+#        v1 = 10
+#        v2 = 20
+#        v3 = 5
+#        v4 = 3
+#        v5 = 7
         for x in [0..@w]
             for y in [0..@h]
                 colour = "hsla(#{@randHue(hue1, hue2)},#{@randInt(0,5)}%,#{@randInt(60,20)}%,0.5)"
-                @drawRandomisedRect(x * @tileSize+@randInt(0,10), y * @tileSize+@randInt(0,10), @tileSize+@randInt(0,20), @tileSize+@randInt(0,20), colour, 5)
+                @drawRandomisedRect(x * @tileSize+@randInt(0,v1), y * @tileSize+@randInt(0,v1), @tileSize+@randInt(0,v2), @tileSize+@randInt(0,v2), colour, v3)
         for x in [0..@w]
             for y in [0..@h]
                 if Math.random() > 0.5
@@ -267,15 +284,15 @@ class Map
                 else
                     hue = hue2
                 colour = "hsla(#{@randHue(hue1, hue2)},#{@randInt(0,5)}%,#{@randInt(60,20)}%,0.8)"
-                @drawRandomisedRect(x * @tileSize+@randInt(0,10), y * @tileSize+@randInt(0,10), @tileSize+@randInt(0,20), @tileSize+@randInt(0,20), colour, 5)
+                @drawRandomisedRect(x * @tileSize+@randInt(0,v1), y * @tileSize+@randInt(0,v1), @tileSize+@randInt(0,v2), @tileSize+@randInt(0,v2), colour, v3)
         for x in [0..@w]
             for y in [0..@h]
                 unless @tiles[x][y] && @tiles[x][y].surrounded
                     count = @nearbyTiles(x, y, 2)
                     brightness = ((1 - (count / 20)) * 80) / 2 + 20
                     for i in [0..@randInt(0,count * 2)]
-                        colour = "hsla(#{@randHue(hue1, hue2)},#{@randInt(0,10)}%,#{@randInt(brightness,20)}%,0.8)"
-                        @drawCircle(x * @tileSize+@randInt(0,@tileSize), y * @tileSize+@randInt(0,@tileSize), @randInt(3,7), colour)
+                        colour = "hsla(#{@randHue(hue1, hue2)},#{@randInt(0,v1)}%,#{@randInt(brightness,20)}%,0.8)"
+                        @drawCircle(x * @tileSize+@randInt(0,@tileSize), y * @tileSize+@randInt(0,@tileSize), @randInt(v4, v5), colour)
 
     drawRandomisedRect: (x, y, w, h, colour, variation) ->
         @floorCtx.fillStyle = colour

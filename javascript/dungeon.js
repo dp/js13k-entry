@@ -27,14 +27,81 @@
       window.randSeed = seed;
       this.map = new Map('map', params);
       this.zoom();
-      return this.map.draw();
+      this.map.draw();
+      this.canvas = document.getElementById('items');
+      this.canvas.onclick = this.canvasClicked;
+      this.canvas.width = this.map.canvas.width;
+      this.canvas.height = this.map.canvas.height;
+      this.ctx = this.canvas.getContext('2d');
+      return this.items = {
+        start: [50, 50],
+        exit: [60, 20],
+        monsters: [],
+        orbs: []
+      };
+    },
+    canvasClicked: function(e) {
+      var tileSize;
+      tileSize = Dungeon.map.tileSize;
+      Dungeon.addItem(Math.floor(e.layerX / tileSize), Math.floor(e.layerY / tileSize));
+      return Dungeon.drawItems();
     },
     randomSeed: function() {
       return byId('seed').value = Math.floor(Math.random() * 1000000);
     },
     zoom: function() {
       return this.map.canvas.style.width = this.map.canvas.width * parseFloat(byId('zoom').value) + 'px';
+    },
+    drawItems: function() {
+      var item, j, k, len, len1, ref, ref1, tileSize;
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      tileSize = this.map.tileSize;
+      this.ctx.fillStyle = 'cyan';
+      ref = this.items.orbs;
+      for (j = 0, len = ref.length; j < len; j++) {
+        item = ref[j];
+        this.ctx.fillRect(item[0] * tileSize, item[1] * tileSize, tileSize, tileSize);
+      }
+      this.ctx.fillStyle = 'red';
+      ref1 = this.items.monsters;
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        item = ref1[k];
+        this.ctx.fillRect(item[0] * tileSize, item[1] * tileSize, tileSize, tileSize);
+      }
+      this.ctx.fillStyle = 'limegreen';
+      item = this.items.start;
+      this.ctx.fillRect(item[0] * tileSize, item[1] * tileSize, tileSize, tileSize);
+      this.ctx.fillStyle = 'green';
+      item = this.items.exit;
+      return this.ctx.fillRect(item[0] * tileSize, item[1] * tileSize, tileSize, tileSize);
+    },
+    addItem: function(x, y) {
+      var i, item, itemType, j, len, match, ref;
+      itemType = byId('item-type').value;
+      if (itemType === 'start' || itemType === 'exit') {
+        this.items[itemType] = [x, y];
+      } else {
+        match = null;
+        ref = this.items[itemType];
+        for (i = j = 0, len = ref.length; j < len; i = ++j) {
+          item = ref[i];
+          if (item[0] === x && item[1] === y) {
+            match = i;
+            console.log(x, y, item, i);
+          }
+        }
+        if (match) {
+          console.log('before', this.items[itemType], match);
+          this.items[itemType].splice(match, 1);
+          console.log('after', this.items[itemType]);
+        } else {
+          this.items[itemType].push([x, y]);
+        }
+      }
+      return byId('locations').innerHTML = JSON.stringify(this.items);
     }
   };
+
+  window.pixels = 1;
 
 }).call(this);

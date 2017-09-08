@@ -11,6 +11,18 @@
     <script src='javascript/dungeon.js'></script>
 </head>
 <body>
+<div id="items-panel">
+    <h2>Dungeon Generator</h2>
+    <p>Select an item type, then click on the map to place</p>
+    <textarea id="locations" cols="30" rows="14"></textarea>
+    <p>Item type: <select id="item-type">
+        <option value="start">Start (lt green)</option>
+        <option value="exit">Exit (dk green)</option>
+        <option value="monsters" selected>Monster (red)</option>
+        <option value="orbs">Light orb (cyan)</option>
+    </select>
+    </p>
+</div>
 <div id="settings-panel">
     <h2>Dungeon Generator</h2>
     <p>When you find a dungeon you like, copy the text from the box below and paste it somewhere safe</p>
@@ -29,14 +41,14 @@
     </p>
     <p>Width <input type="number" id="width" value="120" min="10" step="1"></p>
     <p>Height <input type="number" id="height" value="80" min="10" step="1"></p>
-    <p><label>Smooth corners? <input type="checkbox" checked id="smooth"></label></p>
-    <p>Wall roughness <input type="number" id="wall-roughness" value="20">%</p>
+    <p><label>Smooth corners? <input type="checkbox" id="smooth"></label></p>
+    <p>Wall roughness <input type="number" id="wall-roughness" value="0">%</p>
 
     <p>Tile size <input type="number" id="tile-size" value="10" min="5" step="1"></p>
 
     <p>Initial density <input type="number" id="initial-density" value="47">% (40-55)</p>
-    <p>Reseed density <input type="number" id="reseed-density" value="56">% (40-60)</p>
-    <p>Empty cavern tolerance <input type="number" id="empty-tolerance" value="3"> (0-6)</p>
+    <p>Reseed density <input type="number" id="reseed-density" value="51">% (40-60)</p>
+    <p>Empty cavern tolerance <input type="number" id="empty-tolerance" value="6"> (0-6)</p>
     <p>Cavern reseed method <select id="reseed-method">
         <option value="top" selected>From top</option>
         <option value="centre">In centre</option>
@@ -53,6 +65,16 @@
     </select></p>
     <p>Pass 2 <select id="pass-2">
         <option value="">-- nothing --</option>
+        <option value="combine-aggressive">Combine (aggressive)</option>
+        <option value="combine-mild">Combine (mild)</option>
+        <option value="reseed-huge">Reseed Huge caverns</option>
+        <option value="reseed-large">Reseed Large caverns</option>
+        <option value="reseed-medium" selected>Reseed Medium caverns</option>
+        <option value="reseed-small">Reseed Small caverns</option>
+        <option value="remove-singles">Remove Singles</option>
+    </select></p>
+    <p>Pass 3 <select id="pass-3">
+        <option value="">-- nothing --</option>
         <option value="combine-aggressive" selected>Combine (aggressive)</option>
         <option value="combine-mild">Combine (mild)</option>
         <option value="reseed-huge">Reseed Huge caverns</option>
@@ -61,7 +83,7 @@
         <option value="reseed-small">Reseed Small caverns</option>
         <option value="remove-singles">Remove Singles</option>
     </select></p>
-    <p>Pass 3 <select id="pass-3">
+    <p>Pass 4 <select id="pass-4">
         <option value="">-- nothing --</option>
         <option value="combine-aggressive">Combine (aggressive)</option>
         <option value="combine-mild">Combine (mild)</option>
@@ -71,19 +93,9 @@
         <option value="reseed-small" selected>Reseed Small caverns</option>
         <option value="remove-singles">Remove Singles</option>
     </select></p>
-    <p>Pass 4 <select id="pass-4">
+    <p>Pass 5 <select id="pass-5">
         <option value="">-- nothing --</option>
         <option value="combine-aggressive" selected>Combine (aggressive)</option>
-        <option value="combine-mild">Combine (mild)</option>
-        <option value="reseed-huge">Reseed Huge caverns</option>
-        <option value="reseed-large">Reseed Large caverns</option>
-        <option value="reseed-medium">Reseed Medium caverns</option>
-        <option value="reseed-small">Reseed Small caverns</option>
-        <option value="remove-singles">Remove Singles</option>
-    </select></p>
-    <p>Pass 5 <select id="pass-5">
-        <option value="" selected>-- nothing --</option>
-        <option value="combine-aggressive">Combine (aggressive)</option>
         <option value="combine-mild">Combine (mild)</option>
         <option value="reseed-huge">Reseed Huge caverns</option>
         <option value="reseed-large">Reseed Large caverns</option>
@@ -106,6 +118,7 @@
 </div>
 <div id="scrollbox">
     <canvas id="map"></canvas>
+    <canvas id="items"></canvas>
 </div>
 <script>
     Dungeon.generate()

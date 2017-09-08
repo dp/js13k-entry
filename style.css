@@ -18,8 +18,6 @@ body {
     left: 0;
     padding: 5px;
     display: none;
-    /*bottom: 0;*/
-    /*border-right: 1px solid #ddd;*/
 }
 #settings-panel p {
     margin: 10px 0;
@@ -30,17 +28,14 @@ body {
 
 
 #viewport {
-    /*border: 2px solid red;*/
     position: absolute;
     overflow: hidden;
     top:0;
     left: 0;
     bottom: 0;
     right: 0;
-    /*background-color: lemonchiffon;*/
 }
 #overlay {
-    /*background-color: blueviolet;*/
     position: absolute;
     top:0;
     left: 0;
@@ -62,43 +57,17 @@ body {
     /*background-image: url('images/floor.png');*/
     display: none;
 }
-/*#shadows {*/
-    /*position: absolute;*/
-    /*top:0;*/
-    /*left: 0;*/
-    /*!*background-color: rgba(0,0,255,0.2);*!*/
-    /*width: 1680px;*/
-    /*height: 950px;*/
-/*}*/
 #light-mask, #view {
     position: absolute;
     top:0;
     left: 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    image-rendering: optimizespeed;
 }
-/*#characters {*/
-    /*position: absolute;*/
-    /*top:0;*/
-    /*left: 0;*/
-    /*!*background-color: rgba(0,255,255,0.2);*!*/
-    /*width: 1680px;*/
-    /*height: 1000px;*/
-/*}*/
-/*#map, #shadows, #floor {*/
-    /*position: absolute;*/
-    /*top:0;*/
-    /*left: 0;*/
-/*}*/
-
-/*#debug {*/
-    /*position: fixed;*/
-    /*top: 5px;*/
-    /*right: 5px;*/
-    /*color: black;*/
-    /*font-size: 14pt;*/
-    /*background-color: #ff8;*/
-    /*padding: 2px 5px;*/
-/*}*/
-
+#light-mask {
+    /*display: none;*/
+}
 .text {
     position: absolute;
     top: 80%;
@@ -120,13 +89,13 @@ body {
 }
 
 .text.fade-out {
-    top: 40%;
+    top: 60%;
     /*left: 15%;*/
     /*transform: rotate(-15deg);*/
     opacity: 0;
     font-size: 20pt;
     filter: blur(20px);
-    transition: all 8s;
+    transition: all 4s;
     transition-timing-function: ease-in;
 
 }
@@ -134,4 +103,30 @@ body {
     top: 81%;
     opacity: 0;
     filter: blur(20px);
+}
+#player {
+    display: block;
+    position: absolute;
+    width: 60px;
+    height: 48px;
+    background-image: url('images/Change-light-off.png');
+}
+#light {
+    display: block;
+    position: absolute;
+    width: 60px;
+    height: 48px;
+    background-image: url('images/light-only-no-rod.png');
+}
+#player.down, #light.down {
+    background-position-y: 0;
+}
+#player.right, #light.right {
+    background-position-y: -48px;
+}
+#player.left, #light.left {
+    background-position-y: -96px;
+}
+#player.up, #light.up {
+    background-position-y: -144px;
 }

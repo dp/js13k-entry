@@ -7,36 +7,41 @@
       this.map = new Map('map', mapParams);
       this.map.canvas.style.width = this.map.canvas.width + 'px';
       this.map.draw();
+      this.tileSize = this.map.tileSize;
+      this.playerEl = byId('player');
+      this.lightEl = byId('light');
+      this.light = new Light(this.lightEl);
+      this.initGameParams(gameParams);
       this.shadowCanvas = document.createElement('canvas');
       this.shadowCtx = this.shadowCanvas.getContext('2d');
-      this.maskCanvas = document.getElementById('light-mask');
+      this.maskCanvas = byId('light-mask');
       this.maskCtx = this.maskCanvas.getContext('2d');
-      this.viewCanvas = document.getElementById('view');
+      this.viewCanvas = byId('view');
       this.viewCtx = this.viewCanvas.getContext('2d');
-      this.shadowCanvas.width = (this.map.w + 1) * this.map.tileSize;
-      this.shadowCanvas.height = (this.map.h + 1) * this.map.tileSize;
-      this.maskCanvas.width = window.innerWidth;
-      this.maskCanvas.height = window.innerHeight;
-      this.viewCanvas.width = window.innerWidth;
-      this.viewCanvas.height = window.innerHeight;
+      this.shadowCanvas.width = (this.map.w + 1) * this.tileSize;
+      this.shadowCanvas.height = (this.map.h + 1) * this.tileSize;
+      this.maskCanvas.width = Math.floor(window.innerWidth / pixels);
+      this.maskCanvas.height = Math.floor(window.innerHeight / pixels);
+      this.maskCanvas.style.width = window.innerWidth + 'px';
+      this.maskCanvas.style.height = window.innerHeight + 'px';
+      this.viewCanvas.width = Math.floor(window.innerWidth / pixels);
+      this.viewCanvas.height = Math.floor(window.innerHeight / pixels);
+      this.viewCanvas.style.width = window.innerWidth + 'px';
+      this.viewCanvas.style.height = window.innerHeight + 'px';
+      this.viewCtx.translate(0.5, 0.5);
       this.maskCtx.fillStyle = '#000';
       this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
       this.gameWorld = byId('gameworld');
-      this.pos = {
-        x: gameParams.startPos[0] * mapParams.tileSize,
-        y: gameParams.startPos[1] * mapParams.tileSize
-      };
+      this.pos = this.tilePosToGameXY(gameParams.start);
       this.changed = true;
       this.lines = [];
-      this.speed = 200;
-      this.lightRadius = 500;
-      this.nightVisionRadius = 0;
-      this.maxNightVisionRadius = 200;
-      this.nightVisionChangeRate = 10;
-      this.lightOn = false;
+      this.speed = 125;
+      this.playerEl.style.left = ((window.innerWidth - 60) / 2) + "px";
+      this.playerEl.style.top = ((window.innerHeight - 48) / 2) + "px";
+      this.lightEl.style.left = ((window.innerWidth - 60) / 2) + "px";
+      this.lightEl.style.top = ((window.innerHeight - 48) / 2) + "px";
       this.initLines();
-      this.turnLightOn();
-      this.turnLightOff();
+      this.light.turnOff();
       openingText();
       setTimeout((function() {
         return window.requestAnimationFrame(update);
@@ -51,19 +56,10 @@
         delta = 0;
       }
       this.lastTimestamp = timestamp;
-      this.lightOffTween.update(delta);
-      this.lightOnTween.update(delta);
-      if (!this.lightOn) {
-        if (this.nightVisionRadius < this.maxNightVisionRadius) {
-          this.changed = true;
-          this.nightVisionRadius += this.nightVisionChangeRate * delta;
-          if (this.nightVisionRadius > this.maxNightVisionRadius) {
-            this.nightVisionRadius = this.maxNightVisionRadius;
-          }
-        }
-      }
+      this.light.update(delta);
+      this.changed = true;
       if (right || left || up || down) {
-        testRange = 9;
+        testRange = 24 / pixels;
         newPos = {
           x: this.pos.x,
           y: this.pos.y
@@ -74,6 +70,7 @@
           if (pixel[3] < 10) {
             this.pos.x = newPos.x;
           }
+          this.playerEl.className = 'right';
         }
         if (left) {
           newPos.x = this.pos.x - this.speed * delta;
@@ -81,6 +78,7 @@
           if (pixel[3] < 10) {
             this.pos.x = newPos.x;
           }
+          this.playerEl.className = 'left';
         }
         if (down) {
           newPos.y = this.pos.y + this.speed * delta;
@@ -88,6 +86,7 @@
           if (pixel[3] < 10) {
             this.pos.y = newPos.y;
           }
+          this.playerEl.className = 'down';
         }
         if (up) {
           newPos.y = this.pos.y - this.speed * delta;
@@ -95,47 +94,37 @@
           if (pixel[3] < 10) {
             this.pos.y = newPos.y;
           }
+          this.playerEl.className = 'up';
         }
+        this.lightEl.className = this.playerEl.className;
         this.changed = true;
       }
       if (window.toggleLight) {
-        if (this.lightOn) {
-          this.turnLightOff();
+        if (this.light.on) {
+          this.light.turnOff();
         } else {
-          this.turnLightOn();
+          this.light.turnOn();
         }
         window.toggleLight = false;
         this.changed = true;
       }
+      this.playerTouchingOrb();
       return this.draw(delta);
     };
 
-    Game.prototype.turnLightOn = function() {
-      this.lightOn = true;
-      return this.lightOnTween = new Tween(3.0, {
-        rgb: [200, 0],
-        r: [10, this.lightRadius],
-        a: [0.0, 1.0]
-      });
-    };
-
-    Game.prototype.turnLightOff = function() {
-      this.lightOn = false;
-      this.lightOffTween = new Tween(3.0, {
-        rgb: [0, 0],
-        r: [0, 200],
-        a: [0, 0.4]
-      });
-      return window.lit = this.lightOffTween;
-    };
-
     Game.prototype.draw = function(delta) {
+      if (!this.changed) {
+        return false;
+      }
       this.shadowCtx.clearRect(0, 0, this.shadowCanvas.width, this.shadowCanvas.height);
-      this.drawOrb();
-      if (this.lightOn) {
+      this.drawOrbs();
+      this.drawMonsters();
+      if (this.light.on) {
         this.drawLineShadows();
       }
       this.positionMap();
+      this.drawPlayerShadow();
+      this.drawExit(this.shadowCtx);
       this.drawLightMask();
       this.compositeCanvas();
       return this.changed = false;
@@ -144,40 +133,118 @@
     Game.prototype.compositeCanvas = function() {
       game.viewCtx.drawImage(this.map.floorCanvas, this.viewX - this.pos.x, this.viewY - this.pos.y);
       game.viewCtx.drawImage(this.shadowCanvas, this.viewX - this.pos.x, this.viewY - this.pos.y);
-      return game.viewCtx.drawImage(this.map.canvas, this.viewX - this.pos.x, this.viewY - this.pos.y);
+      game.viewCtx.drawImage(this.map.canvas, this.viewX - this.pos.x, this.viewY - this.pos.y);
+      return game.drawExit(game.viewCtx);
     };
 
-    Game.prototype.drawOrb = function() {
+    Game.prototype.drawPlayerShadow = function() {
       var grd, radius;
-      radius = 20;
-      if (this.lightOn) {
-        grd = this.maskCtx.createRadialGradient(this.pos.x, this.pos.y, 10, this.pos.x, this.pos.y, radius);
-        grd.addColorStop(0, 'rgba(60,255,255,0.4)');
-        grd.addColorStop(0.5, 'rgba(60,255,255,0.2)');
-        grd.addColorStop(1, 'rgba(60,255,255,0)');
-        this.shadowCtx.fillStyle = grd;
-        this.shadowCtx.beginPath();
-        this.shadowCtx.arc(this.pos.x, this.pos.y, radius, 0, Math.PI * 2);
-        this.shadowCtx.fill();
-        grd = this.maskCtx.createRadialGradient(this.pos.x + 3, this.pos.y - 3, 2, this.pos.x, this.pos.y, 7);
-        grd.addColorStop(0, '#fff');
-        grd.addColorStop(1, '#0ff');
-        this.shadowCtx.fillStyle = grd;
-        this.shadowCtx.beginPath();
-        this.shadowCtx.arc(this.pos.x, this.pos.y, 7, 0, Math.PI * 2);
-        this.shadowCtx.fill();
-        this.shadowCtx.strokeStyle = '#fff';
-        this.shadowCtx.beginPath();
-        this.shadowCtx.arc(this.pos.x, this.pos.y, 8, 0, Math.PI * 2);
-        return this.shadowCtx.stroke();
-      } else {
-        this.shadowCtx.strokeStyle = '#066';
-        this.shadowCtx.fillStyle = '#288';
-        this.shadowCtx.beginPath();
-        this.shadowCtx.arc(this.pos.x, this.pos.y, 8, 0, Math.PI * 2);
-        this.shadowCtx.stroke();
-        return this.shadowCtx.fill();
+      radius = 24 / pixels;
+      this.shadowCtx.save();
+      this.shadowCtx.translate(this.pos.x, this.pos.y + 24 / pixels);
+      this.shadowCtx.scale(1, 0.25);
+      grd = this.shadowCtx.createRadialGradient(0, 0, 0, 0, 0, radius);
+      grd.addColorStop(0, 'rgba(0,0,0,0.6)');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      this.shadowCtx.fillStyle = grd;
+      this.shadowCtx.beginPath();
+      this.shadowCtx.arc(0, 0, radius, 0, Math.PI * 2);
+      this.shadowCtx.fill();
+      return this.shadowCtx.restore();
+    };
+
+    Game.prototype.playerTouchingOrb = function() {
+      var i, j, len, orb, ref, results;
+      ref = this.orbs;
+      results = [];
+      for (i = j = 0, len = ref.length; j < len; i = ++j) {
+        orb = ref[i];
+        if (this.itemInRange(orb, this.tileSize) && !orb.used) {
+          this.light.addPower();
+          results.push(orb.used = true);
+        } else {
+          results.push(void 0);
+        }
       }
+      return results;
+    };
+
+    Game.prototype.drawOrbs = function() {
+      var glowGradient, glowRadius, j, len, orb, orbGradient, orbRadius, ref, results, shadowGradient;
+      glowRadius = 15;
+      orbRadius = 4;
+      glowGradient = this.shadowCtx.createRadialGradient(0, 0, orbRadius, 0, 0, glowRadius);
+      glowGradient.addColorStop(0, 'rgba(143,194,242,0.4)');
+      glowGradient.addColorStop(1, 'rgba(191,226,226,0)');
+      orbGradient = this.shadowCtx.createRadialGradient(1, -1, 1, 0, 0, orbRadius);
+      orbGradient.addColorStop(0, '#bfe2e2');
+      orbGradient.addColorStop(1, '#8fc2f2');
+      shadowGradient = this.shadowCtx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);
+      shadowGradient.addColorStop(0, 'rgba(191,226,226,0.4)');
+      shadowGradient.addColorStop(0.2, 'rgba(143,194,242,0.4)');
+      shadowGradient.addColorStop(1, 'rgba(143,194,242,0)');
+      ref = this.orbs;
+      results = [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        orb = ref[j];
+        if (this.itemInRange(orb, 800) && !orb.used) {
+          this.shadowCtx.save();
+          this.shadowCtx.translate(orb.x, orb.y + 10);
+          this.shadowCtx.scale(1, 0.3);
+          this.shadowCtx.fillStyle = shadowGradient;
+          this.shadowCtx.beginPath();
+          this.shadowCtx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+          this.shadowCtx.fill();
+          this.shadowCtx.restore();
+          this.shadowCtx.save();
+          this.shadowCtx.translate(orb.x, orb.y);
+          this.shadowCtx.fillStyle = glowGradient;
+          this.shadowCtx.beginPath();
+          this.shadowCtx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+          this.shadowCtx.fill();
+          this.shadowCtx.fillStyle = orbGradient;
+          this.shadowCtx.beginPath();
+          this.shadowCtx.arc(0, 0, orbRadius, 0, Math.PI * 2);
+          this.shadowCtx.fill();
+          results.push(this.shadowCtx.restore());
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    };
+
+    Game.prototype.drawMonsters = function() {
+      var angDist, j, len, monster, radius, ref, results;
+      radius = 12;
+      ref = this.monsters;
+      results = [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        monster = ref[j];
+        if (this.itemInRange(monster, 800)) {
+          angDist = Vectors.angleDistBetweenPoints(this.pos, monster);
+          this.shadowCtx.save();
+          this.shadowCtx.translate(monster.x, monster.y);
+          this.shadowCtx.rotate(angDist.angle);
+          this.shadowCtx.fillStyle = '#000';
+          this.shadowCtx.beginPath();
+          this.shadowCtx.arc(0, 0, radius, 0, Math.PI * 2);
+          this.shadowCtx.fill();
+          this.shadowCtx.fillStyle = '#f20';
+          this.shadowCtx.beginPath();
+          this.shadowCtx.arc(-8, 3, 2, 0, Math.PI * 2);
+          this.shadowCtx.arc(-8, -3, 2, 0, Math.PI * 2);
+          this.shadowCtx.fill();
+          results.push(this.shadowCtx.restore());
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    };
+
+    Game.prototype.itemInRange = function(pos, range) {
+      return (Math.abs(pos.x - this.pos.x) < range) && (Math.abs(pos.y - this.pos.y) < range);
     };
 
     Game.prototype.drawPoints = function() {
@@ -225,9 +292,10 @@
     };
 
     Game.prototype.drawLineShadows = function() {
-      var angDist1, angDist2, angle, delta, drawLines, j, k, l, len, len1, lineCheckDist, p1, p2, ref;
-      lineCheckDist = this.lightRadius + 20;
-      this.shadowCtx.lineWidth = 6;
+      var angDist1, angDist2, angle, delta, drawLines, j, k, l, len, len1, lineCheckDist, p1, p2, ref, shadowDrawRadius;
+      lineCheckDist = 500;
+      shadowDrawRadius = 100;
+      this.shadowCtx.lineWidth = 3;
       drawLines = [];
       ref = this.lines;
       for (j = 0, len = ref.length; j < len; j++) {
@@ -241,13 +309,16 @@
         this.shadowCtx.lineTo(l[1].x, l[1].y);
         this.shadowCtx.stroke();
       }
+      this.shadowCtx.fillStyle = 'rgba(0,0,0,0.7)';
+      this.shadowCtx.strokeStyle = 'rgba(0,0,0,0.7)';
+      this.shadowCtx.lineWidth = 0.5;
       for (k = 0, len1 = drawLines.length; k < len1; k++) {
         l = drawLines[k];
         p1 = l[0];
         p2 = l[1];
         angDist1 = Vectors.angleDistBetweenPoints(this.pos, p1);
         angDist2 = Vectors.angleDistBetweenPoints(this.pos, p2);
-        if (angDist1.distance < this.lightRadius || angDist2.distance < this.lightRadius) {
+        if (angDist1.distance < shadowDrawRadius || angDist2.distance < shadowDrawRadius) {
           if (l[2]) {
             angle = angDist1.angle;
             delta = angle - l[2].ang;
@@ -258,7 +329,6 @@
               delta -= Math.PI * 2;
             }
             if (delta < 0) {
-              this.shadowCtx.fillStyle = 'rgba(0,0,0,0.8)';
               this.drawShadow(p1, p2, angDist1.angle, angDist2.angle);
             }
           }
@@ -277,21 +347,19 @@
       this.shadowCtx.lineTo(end2.x, end2.y);
       this.shadowCtx.lineTo(p2.x, p2.y);
       this.shadowCtx.lineTo(p1.x, p1.y);
-      return this.shadowCtx.fill();
+      this.shadowCtx.fill();
+      this.shadowCtx.beginPath();
+      this.shadowCtx.moveTo(p1.x, p1.y);
+      this.shadowCtx.lineTo(end1.x, end1.y);
+      return this.shadowCtx.stroke();
     };
 
     Game.prototype.drawLightMask = function() {
-      var grd, radius, rgb, tween;
-      if (this.lightOn) {
-        tween = this.lightOnTween;
-      } else {
-        tween = this.lightOffTween;
-      }
-      rgb = tween.value('rgb');
-      this.maskCtx.fillStyle = "rgb(" + rgb + "," + rgb + "," + rgb + ")";
-      radius = tween.value('r');
+      var grd, radius;
+      this.maskCtx.fillStyle = "#000";
+      radius = this.light.viewRadius;
       grd = this.maskCtx.createRadialGradient(this.viewX, this.viewY, radius / 4, this.viewX, this.viewY, radius);
-      grd.addColorStop(0, "rgba(255,255,255," + (tween.value('a')) + ")");
+      grd.addColorStop(0, "rgba(255,255,255," + this.light.alpha + ")");
       grd.addColorStop(1, 'rgba(255,255,255,0)');
       this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
       this.maskCtx.globalCompositeOperation = 'destination-out';
@@ -307,6 +375,54 @@
         this.maskCtx.arc(this.viewX, this.viewY, radius, 0, Math.PI * 2);
         this.maskCtx.stroke();
         return this.maskCtx.lineWidth = 1;
+      }
+    };
+
+    Game.prototype.drawExit = function(ctx) {
+      var grd, i, j, k, len, radius, ray, ref, x;
+      if (this.itemInRange(this.exit)) {
+        radius = 2 * this.tileSize / pixels;
+        if (!this.lightRays) {
+          this.lightRays = [];
+          for (i = j = 0; j <= 5; i = ++j) {
+            x = randInt(-radius, radius * 2);
+            this.lightRays.push({
+              x: x,
+              y: randInt(-7, 14),
+              w: randInt(2, radius - x),
+              h: randInt(100, 50)
+            });
+          }
+          console.log(this.lightRays);
+        }
+        ctx.save();
+        ctx.translate(this.exit.x, this.exit.y);
+        ctx.scale(1, 0.4);
+        grd = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+        grd.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+        grd.addColorStop(1, 'rgba(255, 255, 255, 0.2)');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        ctx.save();
+        ctx.translate(this.exit.x, this.exit.y);
+        ref = this.lightRays;
+        for (k = 0, len = ref.length; k < len; k++) {
+          ray = ref[k];
+          grd = ctx.createLinearGradient(ray.x, ray.y, ray.x, ray.y - ray.h);
+          grd.addColorStop(0, "rgba(255, 255, 255, " + (0.3 + Math.random() / 5) + ")");
+          grd.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = grd;
+          ctx.beginPath();
+          ctx.moveTo(ray.x, ray.y);
+          ctx.lineTo(ray.x - 0.2 * ray.h, ray.y - ray.h);
+          ctx.lineTo(ray.x - 0.2 * ray.h + ray.w, ray.y - ray.h);
+          ctx.lineTo(ray.x + ray.w, ray.y);
+          ctx.fill();
+        }
+        return ctx.restore();
       }
     };
 
@@ -333,10 +449,38 @@
     };
 
     Game.prototype.positionMap = function() {
-      this.viewX = window.innerWidth / 2;
-      this.viewY = window.innerHeight / 2;
+      this.viewX = window.innerWidth / 2 / pixels;
+      this.viewY = window.innerHeight / 2 / pixels;
       this.gameWorld.style.left = this.viewX - this.pos.x + 'px';
       return this.gameWorld.style.top = this.viewY - this.pos.y + 'px';
+    };
+
+    Game.prototype.initGameParams = function(params) {
+      var j, k, len, len1, monster, pos, ref, ref1, results;
+      this.monsters = [];
+      this.orbs = [];
+      this.exit = this.tilePosToGameXY(params.exit);
+      ref = params.monsters;
+      for (j = 0, len = ref.length; j < len; j++) {
+        pos = ref[j];
+        monster = this.tilePosToGameXY(pos);
+        monster.state = 0;
+        this.monsters.push(monster);
+      }
+      ref1 = params.orbs;
+      results = [];
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        pos = ref1[k];
+        results.push(this.orbs.push(this.tilePosToGameXY(pos)));
+      }
+      return results;
+    };
+
+    Game.prototype.tilePosToGameXY = function(xy) {
+      return {
+        x: (xy[0] + .5) * this.tileSize,
+        y: (xy[1] + .5) * this.tileSize
+      };
     };
 
     return Game;
@@ -371,7 +515,7 @@
 
   window.openingText = function() {
     var j, len, messages, msg, results;
-    messages = [['. . .', -.2, 1], ["It's dark,              ", 1, 5], ["             isn't it?", 0, 6], ["Don't worry", 0, 10], ["your night vision should return soon", 0, 12]];
+    messages = [['. . .', -.2, 1], ["It's dark,              ", 1, 5], ["             isn't it?", 0, 6]];
     results = [];
     for (j = 0, len = messages.length; j < len; j++) {
       msg = messages[j];
@@ -447,7 +591,7 @@
       seed: 559516,
       width: 120,
       height: 80,
-      tileSize: 50,
+      tileSize: 25,
       initialDensity: 47,
       reseedDensity: 51,
       smoothCorners: true,
@@ -457,8 +601,12 @@
       passes: ["combine-aggressive", "reseed-medium", "combine-aggressive", "reseed-small", "combine-aggressive", "remove-singles"]
     };
     gameParams = {
-      startPos: [76, 49]
+      start: [40, 23],
+      exit: [37, 21],
+      monsters: [[32, 49], [80, 18], [102, 19], [62, 21], [76, 38], [57, 24], [113, 72], [116, 75], [117, 72], [115, 63], [73, 67], [49, 72], [5, 70], [13, 35], [49, 75], [97, 70], [86, 12], [63, 59], [91, 22]],
+      orbs: [[50, 37], [60, 61], [35, 33], [24, 75], [10, 65], [10, 62], [18, 48], [105, 77], [114, 50], [116, 16], [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34]]
     };
+    window.pixels = 2;
     return window.game = new Game(mapParams, gameParams);
   };
 

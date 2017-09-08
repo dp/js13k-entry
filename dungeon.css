@@ -1,5 +1,9 @@
-#settings-panel {
+#settings-panel, #items-panel {
     width: 250px;
+    /*border-right: 1px solid #ddd;*/
+}
+#settings-panel {
+    display: none;
     /*border-right: 1px solid #ddd;*/
 }
 #settings-panel p {
@@ -24,6 +28,7 @@ input#smooth {
     overflow: scroll;
 
 }
-#map {
+#map, #items {
     transform-origin: top left;
+    position: absolute;
 }

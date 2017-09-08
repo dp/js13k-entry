@@ -13,9 +13,12 @@
 <body onload='initGame()' onkeydownx="onkeydown(e)" onkeyupx="onkeyup(e)">
 <div id="viewport">
     <div id="gameworld">
-        <div id="characters"></div>
     </div>
     <canvas id="view"></canvas>
+    <div id="characters">
+        <span id="player" class="down"></span>
+        <span id="light" class="down"></span>
+    </div>
     <canvas id="light-mask"></canvas>
     <div id="overlay">
     </div>

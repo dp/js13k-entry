@@ -384,8 +384,8 @@
 
     Map.prototype.drawWalls = function(ctx) {
       var j, len, ref, results, row, tile, x, y;
-      ctx.fillStyle = '#686665';
-      ctx.strokeStyle = '#686665';
+      ctx.fillStyle = '#585655';
+      ctx.strokeStyle = '#585655';
       ref = this.tiles;
       results = [];
       for (x = j = 0, len = ref.length; j < len; x = ++j) {
@@ -436,15 +436,20 @@
     };
 
     Map.prototype.drawFloor = function() {
-      var brightness, colour, count, hue, hue1, hue2, i, j, k, l, m, n, ref, ref1, ref2, ref3, ref4, results, x, y;
+      var brightness, colour, count, hue, hue1, hue2, i, j, k, l, m, n, ref, ref1, ref2, ref3, ref4, results, v1, v2, v3, v4, v5, x, y;
       this.floorCtx.fillStyle = '#888';
       this.floorCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       hue1 = this.randInt(0, 360);
       hue2 = hue1 + 180;
+      v1 = 5;
+      v2 = 10;
+      v3 = 3;
+      v4 = 1;
+      v5 = 4;
       for (x = j = 0, ref = this.w; 0 <= ref ? j <= ref : j >= ref; x = 0 <= ref ? ++j : --j) {
         for (y = k = 0, ref1 = this.h; 0 <= ref1 ? k <= ref1 : k >= ref1; y = 0 <= ref1 ? ++k : --k) {
           colour = "hsla(" + (this.randHue(hue1, hue2)) + "," + (this.randInt(0, 5)) + "%," + (this.randInt(60, 20)) + "%,0.5)";
-          this.drawRandomisedRect(x * this.tileSize + this.randInt(0, 10), y * this.tileSize + this.randInt(0, 10), this.tileSize + this.randInt(0, 20), this.tileSize + this.randInt(0, 20), colour, 5);
+          this.drawRandomisedRect(x * this.tileSize + this.randInt(0, v1), y * this.tileSize + this.randInt(0, v1), this.tileSize + this.randInt(0, v2), this.tileSize + this.randInt(0, v2), colour, v3);
         }
       }
       for (x = l = 0, ref2 = this.w; 0 <= ref2 ? l <= ref2 : l >= ref2; x = 0 <= ref2 ? ++l : --l) {
@@ -455,7 +460,7 @@
             hue = hue2;
           }
           colour = "hsla(" + (this.randHue(hue1, hue2)) + "," + (this.randInt(0, 5)) + "%," + (this.randInt(60, 20)) + "%,0.8)";
-          this.drawRandomisedRect(x * this.tileSize + this.randInt(0, 10), y * this.tileSize + this.randInt(0, 10), this.tileSize + this.randInt(0, 20), this.tileSize + this.randInt(0, 20), colour, 5);
+          this.drawRandomisedRect(x * this.tileSize + this.randInt(0, v1), y * this.tileSize + this.randInt(0, v1), this.tileSize + this.randInt(0, v2), this.tileSize + this.randInt(0, v2), colour, v3);
         }
       }
       results = [];
@@ -471,8 +476,8 @@
                 var p, ref6, results2;
                 results2 = [];
                 for (i = p = 0, ref6 = this.randInt(0, count * 2); 0 <= ref6 ? p <= ref6 : p >= ref6; i = 0 <= ref6 ? ++p : --p) {
-                  colour = "hsla(" + (this.randHue(hue1, hue2)) + "," + (this.randInt(0, 10)) + "%," + (this.randInt(brightness, 20)) + "%,0.8)";
-                  results2.push(this.drawCircle(x * this.tileSize + this.randInt(0, this.tileSize), y * this.tileSize + this.randInt(0, this.tileSize), this.randInt(3, 7), colour));
+                  colour = "hsla(" + (this.randHue(hue1, hue2)) + "," + (this.randInt(0, v1)) + "%," + (this.randInt(brightness, 20)) + "%,0.8)";
+                  results2.push(this.drawCircle(x * this.tileSize + this.randInt(0, this.tileSize), y * this.tileSize + this.randInt(0, this.tileSize), this.randInt(v4, v5), colour));
                 }
                 return results2;
               }).call(this));
