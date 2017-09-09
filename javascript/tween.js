@@ -49,7 +49,7 @@
     function Light(lightEl) {
       this.lightEl = lightEl;
       this.on = false;
-      this.lightValue = 150;
+      this.lightValue = 0;
       this.viewRadius = 0;
       this.alpha = 1.0;
       this.reduction = 1;
@@ -73,15 +73,18 @@
           multiplier = this.tweenTimePassed / this.tweenTime;
         }
         this.viewRadius = (this.tweenTargetRadius - this.tweenStartRadius) * multiplier + this.tweenStartRadius;
-        return this.alpha = (this.tweenTargetAlpha - this.tweenStartAlpha) * multiplier + this.tweenStartAlpha;
+        this.alpha = (this.tweenTargetAlpha - this.tweenStartAlpha) * multiplier + this.tweenStartAlpha;
       } else if (this.on) {
         this.lightValue -= this.reduction * delta;
         if (this.lightValue < 1) {
           this.lightValue = 0;
-          return this.turnOff();
+          this.turnOff();
         } else {
-          return this.viewRadius = this.lightValue + 20;
+          this.viewRadius = this.lightValue + 20;
         }
+      }
+      if (this.viewRadius > 200) {
+        return this.viewRadius = 200;
       }
     };
 
@@ -99,7 +102,7 @@
 
     Light.prototype.turnOn = function(time) {
       if (time == null) {
-        time = 3.0;
+        time = 1.0;
       }
       if (this.lightValue < 1) {
         return false;
@@ -121,7 +124,7 @@
     };
 
     Light.prototype.addPower = function() {
-      this.lightValue += 100;
+      this.lightValue += 50;
       return this.turnOn(1.0);
     };
 

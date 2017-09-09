@@ -20,6 +20,7 @@
       this.canvas = document.createElement('canvas');
       this.canvas.width = (this.w + 1) * this.tileSize;
       this.canvas.height = (this.h + 1) * this.tileSize;
+      this.canvas.style.width = this.canvas.width + 'px';
       this.ctx = this.canvas.getContext('2d');
       this.floorCanvas = document.createElement('canvas');
       this.floorCanvas.width = (this.w + 1) * this.tileSize;

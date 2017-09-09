@@ -30,7 +30,7 @@ class Light
     constructor: (lightEl) ->
         @lightEl = lightEl
         @on = false
-        @lightValue = 150
+        @lightValue = 0
         @viewRadius = 0
         @alpha = 1.0
         @reduction = 1
@@ -60,6 +60,8 @@ class Light
             else
                 @viewRadius = @lightValue + 20
 
+        @viewRadius = 200 if @viewRadius > 200
+
     turnOff: (time = 3.0) ->
         @on = false
         @viewRadius = 0
@@ -68,7 +70,7 @@ class Light
         @lightEl.style.display = 'none'
         true
 
-    turnOn: (time = 3.0) ->
+    turnOn: (time = 1.0) ->
         return false if @lightValue < 1
         @on = true
         @tweenTo time, @lightValue + 20, 1.0
@@ -85,7 +87,7 @@ class Light
         @tweenTargetAlpha = alpha
 
     addPower: ->
-        @lightValue += 100
+        @lightValue += 50
         @turnOn(1.0)
 
 

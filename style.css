@@ -4,7 +4,7 @@ body, html {
 }
 
 body {
-    background-color: black;
+    background-color: #585655;
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -47,16 +47,16 @@ body {
     top: 5px;
     right: 5px;
 }
-#gameworld {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    /*background-color: rgba(0,255,0,0.2);*/
-    width: 2000px;
-    height: 2000px;
-    /*background-image: url('images/floor.png');*/
-    display: none;
-}
+/*#gameworld {*/
+    /*position: absolute;*/
+    /*top: 0px;*/
+    /*left: 0px;*/
+    /*!*background-color: rgba(0,255,0,0.2);*!*/
+    /*width: 2000px;*/
+    /*height: 2000px;*/
+    /*!*background-image: url('images/floor.png');*!*/
+    /*display: none;*/
+/*}*/
 #light-mask, #view {
     position: absolute;
     top:0;
@@ -104,18 +104,15 @@ body {
     opacity: 0;
     filter: blur(20px);
 }
-#player {
+#player, #light {
     display: block;
     position: absolute;
     width: 60px;
     height: 48px;
     background-image: url('images/Change-light-off.png');
+    left: -100px;
 }
 #light {
-    display: block;
-    position: absolute;
-    width: 60px;
-    height: 48px;
     background-image: url('images/light-only-no-rod.png');
 }
 #player.down, #light.down {

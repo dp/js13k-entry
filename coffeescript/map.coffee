@@ -20,6 +20,7 @@ class Map
 #        @canvas = document.getElementById(canvasId)
         @canvas.width = (@w + 1) * @tileSize
         @canvas.height = (@h + 1) * @tileSize
+        @canvas.style.width = @canvas.width + 'px'
         @ctx = @canvas.getContext('2d')
         @floorCanvas = document.createElement('canvas')
         @floorCanvas.width = (@w + 1) * @tileSize

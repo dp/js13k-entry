@@ -1,46 +1,57 @@
 class Game
     constructor: (mapParams, gameParams) ->
         @map = new Map('map', mapParams)
-        @map.canvas.style.width = @map.canvas.width + 'px'
         @map.draw()
         @tileSize = @map.tileSize
+
         @playerEl = byId('player')
         @lightEl = byId('light')
-        @light = new Light(@lightEl)
-        @initGameParams gameParams
-        @shadowCanvas = document.createElement('canvas')
-        @shadowCtx = @shadowCanvas.getContext('2d')
-        @maskCanvas = byId('light-mask')
-        @maskCtx = @maskCanvas.getContext('2d')
-        @viewCanvas = byId('view')
-        @viewCtx = @viewCanvas.getContext('2d')
-        @shadowCanvas.width = (@map.w + 1) * @tileSize
-        @shadowCanvas.height = (@map.h + 1) * @tileSize
-        @maskCanvas.width = Math.floor(window.innerWidth / pixels)
-        @maskCanvas.height = Math.floor(window.innerHeight / pixels)
-        @maskCanvas.style.width = window.innerWidth + 'px'
-        @maskCanvas.style.height = window.innerHeight + 'px'
-        @viewCanvas.width = Math.floor(window.innerWidth / pixels)
-        @viewCanvas.height = Math.floor(window.innerHeight / pixels)
-        @viewCanvas.style.width = window.innerWidth + 'px'
-        @viewCanvas.style.height = window.innerHeight + 'px'
-        @viewCtx.translate(0.5, 0.5)
-        @maskCtx.fillStyle = '#000'
-        @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
-        @gameWorld = byId('gameworld')
-        @pos = @tilePosToGameXY(gameParams.start)
-        @changed = true
-#        @points = []
-        @lines = []
-        @speed = 125
         @playerEl.style.left = "#{(window.innerWidth - 60) / 2}px"
         @playerEl.style.top = "#{(window.innerHeight - 48) / 2}px"
         @lightEl.style.left = "#{(window.innerWidth - 60) / 2}px"
         @lightEl.style.top = "#{(window.innerHeight - 48) / 2}px"
-#        @initPoints()
+
+        @light = new Light(@lightEl)
+
+        @initGameParams gameParams
+
+        # mask canvas
+        @maskCanvas = byId('light-mask')
+        @maskCtx = @maskCanvas.getContext('2d')
+        @maskCanvas.width = Math.floor(window.innerWidth / pixels)
+        @maskCanvas.height = Math.floor(window.innerHeight / pixels)
+        @maskCanvas.style.width = window.innerWidth + 'px'
+        @maskCanvas.style.height = window.innerHeight + 'px'
+        @maskCtx.fillStyle = '#000'
+        @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
+        # shadow canvas
+        @shadowCanvas = document.createElement('canvas')
+        @shadowCtx = @shadowCanvas.getContext('2d')
+        @shadowCanvas.width = @maskCanvas.width
+        @shadowCanvas.height = @maskCanvas.height
+        # view canvas
+        @viewCanvas = byId('view')
+        @viewCtx = @viewCanvas.getContext('2d')
+        @viewCanvas.width = @maskCanvas.width
+        @viewCanvas.height = @maskCanvas.height
+        @viewCanvas.style.width = @maskCanvas.style.width
+        @viewCanvas.style.height = @maskCanvas.style.height
+        @viewCtx.translate(0.5, 0.5)
+        # items canvas
+        @itemsCanvas = document.createElement('canvas')
+        @itemsCtx = @itemsCanvas.getContext('2d')
+        @itemsCanvas.width = @maskCanvas.width
+        @itemsCanvas.height = @maskCanvas.height
+
+        @positionMap()
+        @pos = @tilePosToGameXY(gameParams.start)
+        @changed = true
+        @lines = []
+        @speed = 125
+
         @initLines()
-        @light.turnOff()
-        openingText()
+        @light.turnOff(5)
+#        openingText()
         setTimeout( (->window.requestAnimationFrame update), 1000)
 
 
@@ -99,26 +110,63 @@ class Game
     draw: (delta) ->
         return false unless @changed
         @shadowCtx.clearRect(0, 0, @shadowCanvas.width, @shadowCanvas.height)
+        @shadowCtx.save()
+        @shadowCtx.translate(@viewX - @pos.x, @viewY - @pos.y)
+
+        @itemsCtx.clearRect(0, 0, @itemsCanvas.width, @itemsCanvas.height)
+        @itemsCtx.save()
+        @itemsCtx.translate(@viewX - @pos.x, @viewY - @pos.y)
+
+        @maskCtx.fillStyle = '#000'
+        @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
+
+        #        @itemsCtx.fillStyle = 'red'
+#        @itemsCtx.fillRect(@pos.x, @pos.y, 100, 100)
         @drawOrbs()
         @drawMonsters()
 #        @drawPointRays()
 #        @drawPoints()
-        @drawLineShadows() if @light.on
-        @positionMap()
+        @drawLineShadows() #if @light.on
+#        @positionMap()
         @drawPlayerShadow()
-        @drawExit(@shadowCtx)
-        @drawLightMask()
+        @drawExit(@itemsCtx)
 #        @map.drawWalls(@shadowCtx)
 #        @map.drawEdges(@shadowCtx)
 #        @drawLines()
+        @itemsCtx.restore()
+        @shadowCtx.restore()
         @compositeCanvas()
         @changed = false
 
     compositeCanvas: ->
-        game.viewCtx.drawImage(@map.floorCanvas, @viewX - @pos.x, @viewY - @pos.y)
-        game.viewCtx.drawImage(@shadowCanvas, @viewX - @pos.x, @viewY - @pos.y)
-        game.viewCtx.drawImage(@map.canvas, @viewX - @pos.x, @viewY - @pos.y)
-        game.drawExit(game.viewCtx)
+        @viewCtx.fillStyle = '#585655'
+        @viewCtx.fillRect(0,0, game.viewCanvas.width, game.viewCanvas.height)
+        # draw floor
+        @viewCtx.drawImage(@map.floorCanvas, @viewX - @pos.x, @viewY - @pos.y)
+
+        # remove items in shadows from items canvas
+        @itemsCtx.globalCompositeOperation = 'destination-out'
+        @itemsCtx.drawImage(@shadowCanvas,0, 0)
+        @itemsCtx.globalCompositeOperation = 'source-over'
+
+        # remove items in shadows from light mask canvas
+#        @maskCtx.globalCompositeOperation = 'destination-out'
+        @maskCtx.drawImage(@shadowCanvas,0, 0)
+#        @maskCtx.globalCompositeOperation = 'source-over'
+
+        # draw items
+        @viewCtx.drawImage(@itemsCanvas, 0, 0)
+
+        # draw shadows
+        if @light.on
+            @viewCtx.globalAlpha = 0.7
+            @viewCtx.drawImage(@shadowCanvas,0, 0)
+            @viewCtx.globalAlpha = 1
+
+        # draw dungeon walls
+        @viewCtx.drawImage(@map.canvas, @viewX - @pos.x, @viewY - @pos.y)
+#        @drawExit(game.viewCtx)
+        @drawLightMask()
 
     drawPlayerShadow: ->
         radius = 24 / pixels
@@ -141,72 +189,110 @@ class Game
                 orb.used = true
 
     drawOrbs: ->
+        ctx = @itemsCtx
         glowRadius = 15
         orbRadius = 4
-        glowGradient = @shadowCtx.createRadialGradient(0, 0, orbRadius, 0, 0, glowRadius)
+        glowGradient = ctx.createRadialGradient(0, 0, orbRadius, 0, 0, glowRadius)
         glowGradient.addColorStop(0, 'rgba(143,194,242,0.4)')
         glowGradient.addColorStop(1, 'rgba(191,226,226,0)')
 
-        orbGradient = @shadowCtx.createRadialGradient(1, -1, 1, 0, 0, orbRadius)
+        orbGradient = ctx.createRadialGradient(1, -1, 1, 0, 0, orbRadius)
         orbGradient.addColorStop(0, '#bfe2e2')
         orbGradient.addColorStop(1, '#8fc2f2')
 
         #abcff3
         #8fc2f2
-        shadowGradient = @shadowCtx.createRadialGradient(0,0, 0, 0,0, glowRadius)
+        shadowGradient = ctx.createRadialGradient(0,0, 0, 0,0, glowRadius)
         shadowGradient.addColorStop(0, 'rgba(191,226,226,0.4)')
         shadowGradient.addColorStop(0.2, 'rgba(143,194,242,0.4)')
         shadowGradient.addColorStop(1, 'rgba(143,194,242,0)')
 
+
+        @maskCtx.fillStyle = "#000"
+        maskRadius = glowRadius * 1.5
+        grd = @maskCtx.createRadialGradient(0, 0, 0, 0, 0, maskRadius)
+        grd.addColorStop(0, "rgba(255,255,255,0.8)")
+        grd.addColorStop(1, 'rgba(255,255,255,0)')
+        @maskCtx.globalCompositeOperation = 'destination-out'
+        @maskCtx.fillStyle=grd
+
         for orb in @orbs
-            if @itemInRange(orb, 800) && !orb.used
-                @shadowCtx.save()
-                @shadowCtx.translate(orb.x, orb.y + 10)
-                @shadowCtx.scale(1, 0.3)
-                @shadowCtx.fillStyle = shadowGradient
-                @shadowCtx.beginPath()
-                @shadowCtx.arc(0, 0, glowRadius, 0, Math.PI * 2)
-                @shadowCtx.fill()
-                @shadowCtx.restore()
+            if @itemOnScreen(orb) && !orb.used
+                ctx.save()
+                ctx.translate(orb.x, orb.y + 10)
+                ctx.scale(1, 0.3)
+                ctx.fillStyle = shadowGradient
+                ctx.beginPath()
+                ctx.arc(0, 0, glowRadius, 0, Math.PI * 2)
+                ctx.fill()
+                ctx.restore()
 
-                @shadowCtx.save()
-                @shadowCtx.translate(orb.x, orb.y)
+                ctx.save()
+                ctx.translate(orb.x, orb.y)
 
-                @shadowCtx.fillStyle = glowGradient
-                @shadowCtx.beginPath()
-                @shadowCtx.arc(0, 0, glowRadius, 0, Math.PI * 2)
-                @shadowCtx.fill()
+                ctx.fillStyle = glowGradient
+                ctx.beginPath()
+                ctx.arc(0, 0, glowRadius, 0, Math.PI * 2)
+                ctx.fill()
 
-                @shadowCtx.fillStyle = orbGradient
-                @shadowCtx.beginPath()
-                @shadowCtx.arc(0, 0, orbRadius, 0, Math.PI * 2)
-                @shadowCtx.fill()
+                ctx.fillStyle = orbGradient
+                ctx.beginPath()
+                ctx.arc(0, 0, orbRadius, 0, Math.PI * 2)
+                ctx.fill()
 
-                @shadowCtx.restore()
+                ctx.restore()
+
+                @maskCtx.save()
+                @maskCtx.translate(orb.x - @pos.x + @viewX, orb.y - @pos.y + @viewY)
+                @maskCtx.beginPath()
+                @maskCtx.arc(0, 0, maskRadius, 0, Math.PI * 2)
+                @maskCtx.fill()
+                @maskCtx.restore()
+        @maskCtx.globalCompositeOperation = 'source-over'
+
 
     drawMonsters: ->
+        ctx = @itemsCtx
+        eyeCtx = @maskCtx
+#        eyeCtx = @itemsCtx
         radius = 12
         for monster in @monsters
-            if @itemInRange(monster, 800)
+            if @itemOnScreen(monster)
                 angDist = Vectors.angleDistBetweenPoints @pos, monster
-                @shadowCtx.save()
-                @shadowCtx.translate(monster.x, monster.y)
-                @shadowCtx.rotate(angDist.angle)
-                @shadowCtx.fillStyle = '#000'
-                @shadowCtx.beginPath()
-                @shadowCtx.arc(0, 0, radius, 0, Math.PI * 2)
-                @shadowCtx.fill()
-                @shadowCtx.fillStyle = '#f20'
-                @shadowCtx.beginPath()
-                @shadowCtx.arc(-8, 3, 2, 0, Math.PI * 2)
-                @shadowCtx.arc(-8, -3, 2, 0, Math.PI * 2)
-                @shadowCtx.fill()
+                ctx.save()
+                ctx.translate(monster.x, monster.y)
+                ctx.rotate(angDist.angle)
+                ctx.fillStyle = '#000'
+                ctx.beginPath()
+                ctx.arc(0, 0, radius, 0, Math.PI * 2)
+                ctx.fill()
+                ctx.restore()
 
-                @shadowCtx.restore()
+                eyeCtx.save()
+#                eyeCtx.translate(monster.x, monster.y)
+                eyeCtx.translate(monster.x - @pos.x + @viewX, monster.y - @pos.y + @viewY)
+#                console.log(monster.x, @viewX, monster.y ,@viewY)
+                eyeCtx.rotate(angDist.angle)
+                eyeCtx.fillStyle = '#f20'
+                eyeCtx.scale(0.5, 1.0)
+                eyeCtx.beginPath()
+                eyeCtx.arc(-13, 4, 3, 0, Math.PI * 2)
+                eyeCtx.arc(-13, -4, 3, 0, Math.PI * 2)
+#                eyeCtx.arc(0,0, 20, 0, Math.PI * 2)
+                eyeCtx.fill()
 
+                eyeCtx.restore()
+
+#812.5 420 1237.5 178.75  demo.js:256:11
+#1562.5 420 537.5 178.75  demo.js:256:11
+#1437.5 420 612.5 178.75  demo.js:256:11
+#337.5 420 887.5 178.75
 
     itemInRange: (pos, range) ->
         (Math.abs(pos.x - @pos.x) < range) && (Math.abs(pos.y - @pos.y) < range)
+
+    itemOnScreen: (pos) ->
+        (Math.abs(pos.x - @pos.x) < @viewX) && (Math.abs(pos.y - @pos.y) < @viewY)
 
     drawPoints: ->
         @shadowCtx.fillStyle = '#008'
@@ -236,7 +322,7 @@ class Game
 
     drawLineShadows: ->
         lineCheckDist = 500
-        shadowDrawRadius = 100
+        shadowDrawRadius = 500
         @shadowCtx.lineWidth = 3
         drawLines = []
         for l in @lines
@@ -246,15 +332,17 @@ class Game
 
 #        for l in drawLines
 #            @shadowCtx.strokeStyle = '#B8B6B5'
-            @shadowCtx.strokeStyle = '#888685'
-            @shadowCtx.beginPath()
-            @shadowCtx.moveTo(l[0].x, l[0].y)
-            @shadowCtx.lineTo(l[1].x, l[1].y)
-            @shadowCtx.stroke()
+#            @shadowCtx.strokeStyle = '#888685'
+#            @shadowCtx.beginPath()
+#            @shadowCtx.moveTo(l[0].x, l[0].y)
+#            @shadowCtx.lineTo(l[1].x, l[1].y)
+#            @shadowCtx.stroke()
 
-        @shadowCtx.fillStyle = 'rgba(0,0,0,0.7)'
-        @shadowCtx.strokeStyle = 'rgba(0,0,0,0.7)'
-        @shadowCtx.lineWidth = 0.5
+#        @shadowCtx.fillStyle = 'rgba(0,0,0,0.7)'
+#        @shadowCtx.strokeStyle = 'rgba(0,0,0,0.7)'
+        @shadowCtx.fillStyle = '#000'
+        @shadowCtx.strokeStyle = '#000'
+        @shadowCtx.lineWidth = 1
         for l in drawLines
             p1 = l[0]
             p2 = l[1]
@@ -334,7 +422,7 @@ class Game
         grd.addColorStop(0, "rgba(255,255,255,#{@light.alpha})")
         grd.addColorStop(1, 'rgba(255,255,255,0)')
 
-        @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
+#        @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
         @maskCtx.globalCompositeOperation = 'destination-out'
         @maskCtx.fillStyle=grd
         @maskCtx.beginPath()
@@ -352,7 +440,7 @@ class Game
             @maskCtx.lineWidth = 1
 
     drawExit: (ctx) ->
-        if @itemInRange(@exit)
+        if @itemOnScreen(@exit)
             radius = 2 * @tileSize / pixels
             unless @lightRays
                 @lightRays = []
@@ -387,6 +475,23 @@ class Game
                 ctx.fill()
             ctx.restore()
 
+            @maskCtx.fillStyle = "#000"
+            maskRadius = radius * 1.5
+            grd = @maskCtx.createRadialGradient(0, 0, 0, 0, 0, maskRadius)
+            grd.addColorStop(0, "rgba(255,255,255,0.8)")
+            grd.addColorStop(1, 'rgba(255,255,255,0)')
+            @maskCtx.globalCompositeOperation = 'destination-out'
+            @maskCtx.fillStyle=grd
+            @maskCtx.save()
+            @maskCtx.translate(@exit.x - @pos.x + @viewX, @exit.y - @pos.y + @viewY)
+            @maskCtx.scale(1, 0.4)
+            @maskCtx.beginPath()
+            @maskCtx.arc(0, 0, maskRadius, 0, Math.PI * 2)
+            @maskCtx.fill()
+            @maskCtx.restore()
+            @maskCtx.globalCompositeOperation = 'source-over'
+
+
     updateMousePos: (e) ->
         game.pos.x = e.pageX
         game.pos.y = e.pageY - 10
@@ -403,8 +508,6 @@ class Game
         # move the position of the map so the player stays in the screen centre
         @viewX = window.innerWidth / 2 / pixels
         @viewY = window.innerHeight / 2 / pixels
-        @gameWorld.style.left = @viewX - @pos.x + 'px'
-        @gameWorld.style.top = @viewY - @pos.y + 'px'
 
     initGameParams: (params) ->
         @monsters = []
@@ -471,7 +574,10 @@ window.randInt = (min, range) ->
 
 window.update = (timestamp) ->
     game.update(timestamp)
-    window.requestAnimationFrame update
+    if window.paused
+        console.log 'Game is paused'
+    else
+        window.requestAnimationFrame update
     true
 
 window.byId = (elementId) ->
@@ -499,6 +605,9 @@ window.onkeydown = (e) ->
     # Left (left / A / Q)
     if(e.keyCode == 37 || e.keyCode == 65 ||e.keyCode == 81)
         window.left = true
+    if(e.keyCode == 66)
+        window.paused = true
+        console.log 'Paused'
 
 
 # Keyup listener
@@ -523,7 +632,7 @@ window.initGame = ->
 #    debug "Map #"+randSeed
 #    window.game = new Game()
 #    document.onmousemove = game.updateMousePos
-
+    window.paused = false
 
     mapParams = {
         seed: 559516
@@ -545,17 +654,21 @@ window.initGame = ->
             "remove-singles"]
     }
     gameParams = {
-#        start: [76, 49],
-        start: [40, 23],
+        start: [76, 49],
+#        start: [40, 23],
         exit: [37, 21],
         monsters: [[32, 49], [80, 18], [102, 19], [62, 21], [76, 38], [57, 24], [113, 72], [116, 75], [117, 72],
             [115, 63], [73, 67], [49, 72], [5, 70], [13, 35], [49, 75], [97, 70], [86, 12], [63, 59], [91, 22]],
         orbs: [[50, 37], [60, 61], [35, 33], [24, 75], [10, 65], [10, 62], [18, 48], [105, 77], [114, 50], [116, 16],
-            [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34]]
+            [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34], [72, 45], [79, 49], [80, 49]]
     }
 
+    triggers = [
+        {x: 20, y:20, action: game.testTrigger}
+    ]
+
     window.pixels = 2
-    window.game = new Game(mapParams, gameParams)
+    window.game = new Game(mapParams, gameParams, triggers)
 
 
 #    @map = new Map('map', params)
