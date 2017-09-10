@@ -14,7 +14,8 @@
         reseedMethod: byId('reseed-method').value,
         emptyTolerance: byId('empty-tolerance').value,
         wallRoughness: byId('wall-roughness').value,
-        passes: []
+        passes: [],
+        generator: true
       };
       for (i = j = 1; j <= 6; i = ++j) {
         value = byId('pass-' + i).value;
@@ -37,6 +38,7 @@
         start: [50, 50],
         exit: [60, 20],
         monsters: [],
+        triggers: [],
         orbs: []
       };
     },
@@ -53,19 +55,28 @@
       return this.map.canvas.style.width = this.map.canvas.width * parseFloat(byId('zoom').value) + 'px';
     },
     drawItems: function() {
-      var item, j, k, len, len1, ref, ref1, tileSize;
+      var item, j, k, l, len, len1, len2, offset, ref, ref1, ref2, tileSize;
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       tileSize = this.map.tileSize;
-      this.ctx.fillStyle = 'cyan';
-      ref = this.items.orbs;
+      this.ctx.fillStyle = 'rgba(100,100,255,0.5)';
+      ref = this.items.triggers;
       for (j = 0, len = ref.length; j < len; j++) {
         item = ref[j];
+        offset = (item.r - 1) / 2;
+        this.ctx.fillRect((item.x - offset) * tileSize, (item.y - offset) * tileSize, tileSize * item.r, tileSize * item.r);
+        this.ctx.strokeStyle = 'rgba(100,100,255,1.0)';
+        this.ctx.strokeRect(item.x * tileSize - 1, item.y * tileSize - 1, tileSize + 2, tileSize + 2);
+      }
+      this.ctx.fillStyle = 'cyan';
+      ref1 = this.items.orbs;
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        item = ref1[k];
         this.ctx.fillRect(item[0] * tileSize, item[1] * tileSize, tileSize, tileSize);
       }
       this.ctx.fillStyle = 'red';
-      ref1 = this.items.monsters;
-      for (k = 0, len1 = ref1.length; k < len1; k++) {
-        item = ref1[k];
+      ref2 = this.items.monsters;
+      for (l = 0, len2 = ref2.length; l < len2; l++) {
+        item = ref2[l];
         this.ctx.fillRect(item[0] * tileSize, item[1] * tileSize, tileSize, tileSize);
       }
       this.ctx.fillStyle = 'limegreen';
@@ -76,29 +87,73 @@
       return this.ctx.fillRect(item[0] * tileSize, item[1] * tileSize, tileSize, tileSize);
     },
     addItem: function(x, y) {
-      var i, item, itemType, j, len, match, ref;
+      var i, item, itemType, j, k, len, len1, match, msg, name, ref, ref1;
       itemType = byId('item-type').value;
       if (itemType === 'start' || itemType === 'exit') {
         this.items[itemType] = [x, y];
-      } else {
-        match = null;
+      } else if (itemType === 'triggers') {
+        match = -1;
         ref = this.items[itemType];
         for (i = j = 0, len = ref.length; j < len; i = ++j) {
           item = ref[i];
-          if (item[0] === x && item[1] === y) {
+          console.log('checking:', item);
+          if (item.x === x && item.y === y) {
+            console.log('match:', i);
             match = i;
-            console.log(x, y, item, i);
           }
         }
-        if (match) {
-          console.log('before', this.items[itemType], match);
+        if (match >= 0) {
+          console.log('removing trigger', this.items[itemType][match]);
           this.items[itemType].splice(match, 1);
-          console.log('after', this.items[itemType]);
+        } else {
+          item = {
+            x: x,
+            y: y
+          };
+          item.r = byId('trigger-range').value;
+          name = byId('trigger-name').value;
+          if (name.length > 0) {
+            item.name = name;
+          }
+          msg = byId('trigger-msg').value;
+          if (msg.length > 0) {
+            item.msg = msg;
+          } else {
+            item.action = 'game.onTrigger(t)';
+          }
+          console.log('adding trigger', item);
+          this.items[itemType].push(item);
+        }
+      } else {
+        match = -1;
+        ref1 = this.items[itemType];
+        for (i = k = 0, len1 = ref1.length; k < len1; i = ++k) {
+          item = ref1[i];
+          if (item[0] === x && item[1] === y) {
+            match = i;
+          }
+        }
+        if (match >= 0) {
+          this.items[itemType].splice(match, 1);
         } else {
           this.items[itemType].push([x, y]);
         }
       }
-      return byId('locations').innerHTML = JSON.stringify(this.items);
+      return byId('locations').value = JSON.stringify(this.items);
+    },
+    updateItemList: function() {
+      var base, base1, base2, base3, base4, json;
+      json = byId('locations').value;
+      if (json.length > 10) {
+        this.items = JSON.parse(json);
+        console.log(this.items);
+        (base = this.items).start || (base.start = [50, 50]);
+        (base1 = this.items).exit || (base1.exit = [60, 20]);
+        (base2 = this.items).monsters || (base2.monsters = []);
+        (base3 = this.items).triggers || (base3.triggers = []);
+        (base4 = this.items).orbs || (base4.orbs = []);
+        return this.drawItems();
+      }
     }
   };
 

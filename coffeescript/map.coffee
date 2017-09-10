@@ -16,8 +16,11 @@ class Map
             reseedMethod: args.reseedMethod
             emptyTolerance: parseInt(args.emptyTolerance)
             wallRoughness: parseInt(args.wallRoughness) / 100
-        @canvas = document.createElement('canvas')
-#        @canvas = document.getElementById(canvasId)
+        @gen = args.generator
+        if @gen
+            @canvas = document.getElementById(canvasId)
+        else
+            @canvas = document.createElement('canvas')
         @canvas.width = (@w + 1) * @tileSize
         @canvas.height = (@h + 1) * @tileSize
         @canvas.style.width = @canvas.width + 'px'
@@ -229,12 +232,12 @@ class Map
 
     drawWalls: (ctx) ->
         # colours here https://www.computerhope.com/htmcolor.htm
-        ctx.fillStyle = '#585655'
-        ctx.strokeStyle = '#585655'
-#        ctx.fillStyle = '#686665'
-#        ctx.strokeStyle = '#686665'
-#        ctx.fillStyle = '#ccc'
-#        ctx.strokeStyle = '#ccc'
+        if @gen
+            ctx.fillStyle = '#ccc'
+            ctx.strokeStyle = '#ccc'
+        else
+            ctx.fillStyle = '#585655'
+            ctx.strokeStyle = '#585655'
         for row, x in @tiles
             for tile, y in row
                 if tile

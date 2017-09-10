@@ -30,7 +30,7 @@ class Light
     constructor: (lightEl) ->
         @lightEl = lightEl
         @on = false
-        @lightValue = 0
+        @lightValue = 150
         @viewRadius = 0
         @alpha = 1.0
         @reduction = 1
@@ -87,7 +87,7 @@ class Light
         @tweenTargetAlpha = alpha
 
     addPower: ->
-        @lightValue += 50
+        @lightValue += 80
         @turnOn(1.0)
 
 

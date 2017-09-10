@@ -14,14 +14,20 @@
 <div id="items-panel">
     <h2>Dungeon Generator</h2>
     <p>Select an item type, then click on the map to place</p>
-    <textarea id="locations" cols="30" rows="14"></textarea>
+    <textarea id="locations" cols="30" rows="14" onblur="Dungeon.updateItemList()"></textarea>
     <p>Item type: <select id="item-type">
         <option value="start">Start (lt green)</option>
         <option value="exit">Exit (dk green)</option>
         <option value="monsters" selected>Monster (red)</option>
         <option value="orbs">Light orb (cyan)</option>
+        <option value="triggers">Trigger (blue)</option>
     </select>
     </p>
+    <p>Trigger name <input id="trigger-name"></p>
+    <p>Trigger range <input type="number" id="trigger-range" value="3" min="3" step="2"></p>
+    <p>Trigger message <input id="trigger-msg"></p>
+
+
 </div>
 <div id="settings-panel">
     <h2>Dungeon Generator</h2>

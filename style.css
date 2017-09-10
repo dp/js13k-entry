@@ -80,7 +80,7 @@ body {
     transform: rotate(0);
     opacity: 1;
     filter: blur(1px);
-    transition: all 2.0s;
+    transition: all 0.25s;
     transition-timing-function: ease-out;
     display: block;
     /*width: 600px;*/
@@ -89,13 +89,13 @@ body {
 }
 
 .text.fade-out {
-    top: 60%;
+    top: 70%;
     /*left: 15%;*/
     /*transform: rotate(-15deg);*/
     opacity: 0;
     font-size: 20pt;
     filter: blur(20px);
-    transition: all 4s;
+    transition: all 1s;
     transition-timing-function: ease-in;
 
 }
@@ -126,4 +126,27 @@ body {
 }
 #player.up, #light.up {
     background-position-y: -144px;
+}
+#player.dead {
+    background-position-y: -96px;
+    transform: rotate(90deg);
+    background-image: url('images/Change-light-off.png');
+    margin-top: 16px;
+}
+#light.dead {
+    display: none;
+}
+#player-ghost {
+    display: block;
+    position: absolute;
+    width: 60px;
+    height: 48px;
+    background-image: url('images/Change-light-off.png');
+    left: 818px;
+    top: 400px;
+    transition: all 10s;
+    opacity: 0.5;
+}
+#player-ghost.up {
+    top: -50px;
 }

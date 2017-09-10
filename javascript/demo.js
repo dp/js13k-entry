@@ -111,6 +111,7 @@
         this.changed = true;
       }
       this.playerTouchingOrb();
+      this.playerTouchingTrigger();
       return this.draw(delta);
     };
 
@@ -180,6 +181,28 @@
         if (this.itemInRange(orb, this.tileSize) && !orb.used) {
           this.light.addPower();
           results.push(orb.used = true);
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    };
+
+    Game.prototype.playerTouchingTrigger = function() {
+      var j, len, ref, results, t;
+      ref = this.triggers;
+      results = [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        t = ref[j];
+        if (this.itemInRange(t, t.r) && !t.used) {
+          console.log('t', t.msg);
+          if (t.action) {
+            eval(t.action);
+          }
+          if (t.msg) {
+            say(t.msg, 0);
+          }
+          results.push(t.used = true);
         } else {
           results.push(void 0);
         }
@@ -260,6 +283,12 @@
           ctx.fillStyle = '#000';
           ctx.beginPath();
           ctx.arc(0, 0, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#a10';
+          ctx.scale(0.5, 1.0);
+          ctx.beginPath();
+          ctx.arc(-13, 4, 3, 0, Math.PI * 2);
+          ctx.arc(-13, -4, 3, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
           eyeCtx.save();
@@ -503,9 +532,10 @@
     };
 
     Game.prototype.initGameParams = function(params) {
-      var j, k, len, len1, monster, pos, ref, ref1, results;
+      var j, k, len, len1, len2, m, monster, pos, ref, ref1, ref2, results, trigger;
       this.monsters = [];
       this.orbs = [];
+      this.triggers = [];
       this.exit = this.tilePosToGameXY(params.exit);
       ref = params.monsters;
       for (j = 0, len = ref.length; j < len; j++) {
@@ -515,10 +545,18 @@
         this.monsters.push(monster);
       }
       ref1 = params.orbs;
-      results = [];
       for (k = 0, len1 = ref1.length; k < len1; k++) {
         pos = ref1[k];
-        results.push(this.orbs.push(this.tilePosToGameXY(pos)));
+        this.orbs.push(this.tilePosToGameXY(pos));
+      }
+      ref2 = params.triggers;
+      results = [];
+      for (m = 0, len2 = ref2.length; m < len2; m++) {
+        trigger = ref2[m];
+        trigger.x *= this.tileSize;
+        trigger.y *= this.tileSize;
+        trigger.r = trigger.r * this.tileSize / 2;
+        results.push(this.triggers.push(trigger));
       }
       return results;
     };
@@ -528,6 +566,12 @@
         x: (xy[0] + .5) * this.tileSize,
         y: (xy[1] + .5) * this.tileSize
       };
+    };
+
+    Game.prototype.testTrigger = function(trigger) {
+      this.testCount || (this.testCount = 1);
+      console.log('trigger', this.testCount);
+      return trigger.used = true;
     };
 
     return Game;
@@ -551,7 +595,7 @@
     }), holdTime);
     return setTimeout((function() {
       return o.removeChild(el);
-    }), holdTime + 10000);
+    }), holdTime + 4000);
   };
 
   window.saySoon = function(msg, holdTime, delay) {
@@ -641,7 +685,7 @@
   };
 
   window.initGame = function() {
-    var gameParams, mapParams, triggers;
+    var gameParams, mapParams;
     window.paused = false;
     mapParams = {
       seed: 559516,
@@ -660,17 +704,39 @@
       start: [76, 49],
       exit: [37, 21],
       monsters: [[32, 49], [80, 18], [102, 19], [62, 21], [76, 38], [57, 24], [113, 72], [116, 75], [117, 72], [115, 63], [73, 67], [49, 72], [5, 70], [13, 35], [49, 75], [97, 70], [86, 12], [63, 59], [91, 22]],
-      orbs: [[50, 37], [60, 61], [35, 33], [24, 75], [10, 65], [10, 62], [18, 48], [105, 77], [114, 50], [116, 16], [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34], [72, 45], [79, 49], [80, 49]]
+      orbs: [[50, 37], [60, 61], [35, 33], [24, 75], [10, 65], [10, 62], [18, 48], [105, 77], [114, 50], [116, 16], [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34], [72, 45], [79, 49], [80, 49]],
+      triggers: [
+        {
+          x: 70,
+          y: 43,
+          r: 3,
+          name: "msg1",
+          msg: "Let's get out of here"
+        }, {
+          x: 85,
+          y: 59,
+          r: 7,
+          msg: "I think we're headed in the right direction"
+        }, {
+          x: 117,
+          y: 69,
+          r: 5,
+          msg: "I've got a bad feeling about this ..."
+        }, {
+          x: 52,
+          y: 21,
+          r: 7,
+          msg: "I'm sure the air is fresher here"
+        }, {
+          x: 57,
+          y: 60,
+          r: 5,
+          msg: "Do we need that light?"
+        }
+      ]
     };
-    triggers = [
-      {
-        x: 20,
-        y: 20,
-        action: game.testTrigger
-      }
-    ];
     window.pixels = 2;
-    return window.game = new Game(mapParams, gameParams, triggers);
+    return window.game = new Game(mapParams, gameParams);
   };
 
   window.Game = Game;

@@ -17,7 +17,12 @@
         emptyTolerance: parseInt(args.emptyTolerance),
         wallRoughness: parseInt(args.wallRoughness) / 100
       };
-      this.canvas = document.createElement('canvas');
+      this.gen = args.generator;
+      if (this.gen) {
+        this.canvas = document.getElementById(canvasId);
+      } else {
+        this.canvas = document.createElement('canvas');
+      }
       this.canvas.width = (this.w + 1) * this.tileSize;
       this.canvas.height = (this.h + 1) * this.tileSize;
       this.canvas.style.width = this.canvas.width + 'px';
@@ -385,8 +390,13 @@
 
     Map.prototype.drawWalls = function(ctx) {
       var j, len, ref, results, row, tile, x, y;
-      ctx.fillStyle = '#585655';
-      ctx.strokeStyle = '#585655';
+      if (this.gen) {
+        ctx.fillStyle = '#ccc';
+        ctx.strokeStyle = '#ccc';
+      } else {
+        ctx.fillStyle = '#585655';
+        ctx.strokeStyle = '#585655';
+      }
       ref = this.tiles;
       results = [];
       for (x = j = 0, len = ref.length; j < len; x = ++j) {

@@ -105,6 +105,7 @@ class Game
             @changed = true
 
         @playerTouchingOrb()
+        @playerTouchingTrigger()
         @draw(delta)
 
     draw: (delta) ->
@@ -188,6 +189,14 @@ class Game
                 @light.addPower()
                 orb.used = true
 
+    playerTouchingTrigger: ->
+        for t in @triggers
+            if @itemInRange(t, t.r) && !t.used
+                console.log 't', t.msg
+                eval(t.action) if t.action
+                say(t.msg, 0) if t.msg
+                t.used = true
+
     drawOrbs: ->
         ctx = @itemsCtx
         glowRadius = 15
@@ -259,19 +268,28 @@ class Game
         for monster in @monsters
             if @itemOnScreen(monster)
                 angDist = Vectors.angleDistBetweenPoints @pos, monster
+
                 ctx.save()
                 ctx.translate(monster.x, monster.y)
                 ctx.rotate(angDist.angle)
                 ctx.fillStyle = '#000'
+                # body
                 ctx.beginPath()
                 ctx.arc(0, 0, radius, 0, Math.PI * 2)
                 ctx.fill()
+                # eyes on items layer are dim
+                ctx.fillStyle = '#a10'
+                ctx.scale(0.5, 1.0)
+                ctx.beginPath()
+                ctx.arc(-13, 4, 3, 0, Math.PI * 2)
+                ctx.arc(-13, -4, 3, 0, Math.PI * 2)
+                ctx.fill()
                 ctx.restore()
 
+                # eyes that glow in the dark. these are brighter
                 eyeCtx.save()
 #                eyeCtx.translate(monster.x, monster.y)
                 eyeCtx.translate(monster.x - @pos.x + @viewX, monster.y - @pos.y + @viewY)
-#                console.log(monster.x, @viewX, monster.y ,@viewY)
                 eyeCtx.rotate(angDist.angle)
                 eyeCtx.fillStyle = '#f20'
                 eyeCtx.scale(0.5, 1.0)
@@ -512,6 +530,7 @@ class Game
     initGameParams: (params) ->
         @monsters = []
         @orbs = []
+        @triggers = []
         @exit = @tilePosToGameXY(params.exit)
         for pos in params.monsters
             monster = @tilePosToGameXY(pos)
@@ -519,9 +538,19 @@ class Game
             @monsters.push monster
         for pos in params.orbs
             @orbs.push @tilePosToGameXY(pos)
+        for trigger in params.triggers
+            trigger.x *= @tileSize
+            trigger.y *= @tileSize
+            trigger.r = trigger.r * @tileSize / 2
+            @triggers.push trigger
 
     tilePosToGameXY: (xy) ->
         x: (xy[0] + .5) * @tileSize, y: (xy[1] + .5) * @tileSize
+
+    testTrigger: (trigger) ->
+        @testCount ||= 1
+        console.log 'trigger', @testCount
+        trigger.used = true
 
 window.say = (msg, holdTime, delay) ->
     msg = msg.replace(/\s/g,'&nbsp;').replace("'", '&rsquo;')
@@ -534,7 +563,7 @@ window.say = (msg, holdTime, delay) ->
     o.appendChild(el)
     setTimeout( (->el.className = 'text'), 100)
     setTimeout( (->el.className = 'text fade-out'), holdTime)
-    setTimeout( (->o.removeChild(el)), holdTime + 10000)
+    setTimeout( (->o.removeChild(el)), holdTime + 4000)
 
 window.saySoon = (msg, holdTime, delay) ->
     setTimeout( (-> say(msg, holdTime)), delay * 1000)
@@ -660,15 +689,25 @@ window.initGame = ->
         monsters: [[32, 49], [80, 18], [102, 19], [62, 21], [76, 38], [57, 24], [113, 72], [116, 75], [117, 72],
             [115, 63], [73, 67], [49, 72], [5, 70], [13, 35], [49, 75], [97, 70], [86, 12], [63, 59], [91, 22]],
         orbs: [[50, 37], [60, 61], [35, 33], [24, 75], [10, 65], [10, 62], [18, 48], [105, 77], [114, 50], [116, 16],
-            [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34], [72, 45], [79, 49], [80, 49]]
+            [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34], [72, 45], [79, 49],
+            [80, 49]],
+        triggers: [{x: 70,y: 43,r: 3,name: "msg1",msg: "Let's get out of here"},
+            {x: 85,y: 59,r: 7,msg: "I think we're headed in the right direction"},
+            {x: 117,y: 69,r: 5,msg: "I've got a bad feeling about this ..."},
+            {x: 52,y: 21,r: 7,msg: "I'm sure the air is fresher here"},
+            {x: 57,y: 60,r: 5,msg: "Do we need that light?"}]
     }
 
-    triggers = [
-        {x: 20, y:20, action: game.testTrigger}
-    ]
+
+    # JSON game params for use in dungeon generator
+    # {"start":[40,23],"exit":[37,21],"monsters":[[32,49],[80,18],[102,19],[62,21],[76,38],[57,24],[113,72],[116,75],[117,72],[115,63],[73,67],[49,72],[5,70],[13,35],[49,75],[97,70],[86,12],[63,59],[91,22]],"orbs":[[50,37],[60,61],[35,33],[24,75],[10,65],[10,62],[18,48],[105,77],[114,50],[116,16],[102,27],[49,29],[73,38],[80,5],[79,72],[101,58],[5,24],[91,34],[72,45],[79,49],[80,49]],"triggers":[{"x":70,"y":43,"r":"3","name":"msg1","msg":"Let's get out of here"},{"x":85,"y":59,"r":"7","msg":"I think we're headed in the right direction"},{"x":117,"y":69,"r":"5","msg":"I've got a bad feeling about this ..."},{"x":52,"y":21,"r":"7","msg":"I'm sure the air is fresher here"},{"x":57,"y":60,"r":"5","msg":"Do we need that light?"}]}
+
+    # search replace \s"(\w+)": with $1:
+    # and "(\d)" with $1
+
 
     window.pixels = 2
-    window.game = new Game(mapParams, gameParams, triggers)
+    window.game = new Game(mapParams, gameParams)
 
 
 #    @map = new Map('map', params)
