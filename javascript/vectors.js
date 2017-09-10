@@ -36,9 +36,8 @@
         };
       })(this));
     },
-    addVectorToPoint: function(point, direction, length) {
-      var angRad, newPoint;
-      angRad = direction;
+    addVectorToPoint: function(point, angRad, length) {
+      var newPoint;
       newPoint = {
         x: 0,
         y: 0

@@ -7,6 +7,7 @@
       this.map = new Map('map', mapParams);
       this.map.draw();
       this.tileSize = this.map.tileSize;
+      this.state = 0;
       this.playerEl = byId('player');
       this.lightEl = byId('light');
       this.playerEl.style.left = ((window.innerWidth - 60) / 2) + "px";
@@ -43,6 +44,7 @@
       this.changed = true;
       this.lines = [];
       this.speed = 125;
+      this.monsterSpeed = 140;
       this.initLines();
       this.light.turnOff(5);
       setTimeout((function() {
@@ -51,68 +53,178 @@
     }
 
     Game.prototype.update = function(timestamp) {
-      var delta, newPos, pixel, testRange;
+      var delta, newPos, pg, pixel, testRange;
       if (this.lastTimestamp) {
         delta = (timestamp - this.lastTimestamp) / 1000;
       } else {
         delta = 0;
       }
       this.lastTimestamp = timestamp;
-      this.light.update(delta);
-      this.changed = true;
-      if (right || left || up || down) {
-        testRange = 24 / pixels;
-        newPos = {
-          x: this.pos.x,
-          y: this.pos.y
-        };
-        if (right) {
-          newPos.x = this.pos.x + this.speed * delta;
-          pixel = this.map.pixelAt(Math.floor(newPos.x) + testRange, Math.floor(newPos.y));
-          if (pixel[3] < 10) {
-            this.pos.x = newPos.x;
-          }
-          this.playerEl.className = 'right';
+      if (this.state === 1) {
+        pg = byId('player-ghost');
+        pg.style.top = parseInt(pg.style.top) - 1 + 'px';
+      } else if (this.state === 2) {
+        if (this.light.tweening) {
+          this.light.update(delta);
         }
-        if (left) {
-          newPos.x = this.pos.x - this.speed * delta;
-          pixel = this.map.pixelAt(Math.floor(newPos.x) - testRange, Math.floor(newPos.y));
-          if (pixel[3] < 10) {
-            this.pos.x = newPos.x;
-          }
-          this.playerEl.className = 'left';
-        }
-        if (down) {
-          newPos.y = this.pos.y + this.speed * delta;
-          pixel = this.map.pixelAt(Math.floor(newPos.x), Math.floor(newPos.y) + testRange);
-          if (pixel[3] < 10) {
-            this.pos.y = newPos.y;
-          }
-          this.playerEl.className = 'down';
-        }
-        if (up) {
-          newPos.y = this.pos.y - this.speed * delta;
-          pixel = this.map.pixelAt(Math.floor(newPos.x), Math.floor(newPos.y) - testRange);
-          if (pixel[3] < 10) {
-            this.pos.y = newPos.y;
-          }
-          this.playerEl.className = 'up';
-        }
-        this.lightEl.className = this.playerEl.className;
         this.changed = true;
-      }
-      if (window.toggleLight) {
-        if (this.light.on) {
-          this.light.turnOff();
-        } else {
-          this.light.turnOn();
-        }
-        window.toggleLight = false;
+      } else {
+        this.light.update(delta);
         this.changed = true;
+        if (right || left || up || down) {
+          testRange = 24 / pixels;
+          newPos = {
+            x: this.pos.x,
+            y: this.pos.y
+          };
+          if (right) {
+            newPos.x = this.pos.x + this.speed * delta;
+            pixel = this.map.pixelAt(newPos.x + testRange, newPos.y);
+            if (pixel[3] < 10) {
+              this.pos.x = newPos.x;
+            }
+            this.playerEl.className = 'right';
+          }
+          if (left) {
+            newPos.x = this.pos.x - this.speed * delta;
+            pixel = this.map.pixelAt(newPos.x - testRange, newPos.y);
+            if (pixel[3] < 10) {
+              this.pos.x = newPos.x;
+            }
+            this.playerEl.className = 'left';
+          }
+          if (down) {
+            newPos.y = this.pos.y + this.speed * delta;
+            pixel = this.map.pixelAt(newPos.x, newPos.y + testRange);
+            if (pixel[3] < 10) {
+              this.pos.y = newPos.y;
+            }
+            this.playerEl.className = 'down';
+          }
+          if (up) {
+            newPos.y = this.pos.y - this.speed * delta;
+            pixel = this.map.pixelAt(newPos.x, newPos.y - testRange);
+            if (pixel[3] < 10) {
+              this.pos.y = newPos.y;
+            }
+            this.playerEl.className = 'up';
+          }
+          this.lightEl.className = this.playerEl.className;
+          this.changed = true;
+          if (this.itemInRange({
+            x: this.exit.x,
+            y: this.exit.y - 70
+          }, 80)) {
+            this.win();
+          }
+        }
+        if (window.toggleLight) {
+          if (this.light.on) {
+            this.light.turnOff();
+          } else {
+            this.light.turnOn();
+          }
+          window.toggleLight = false;
+          this.changed = true;
+        }
+        this.playerTouchingOrb();
+        this.playerTouchingTrigger();
+        this.moveMonsters(delta);
       }
-      this.playerTouchingOrb();
-      this.playerTouchingTrigger();
       return this.draw(delta);
+    };
+
+    Game.prototype.moveMonsters = function(delta) {
+      var angDist, angle, attempts, dist, dx, dy, i, j, k, len, monster, newPos, px, py, ref, results, speed, stuck, tp1, tp2, visible;
+      ref = this.monsters;
+      results = [];
+      for (i = j = 0, len = ref.length; j < len; i = ++j) {
+        monster = ref[i];
+        if (this.itemOnScreen(monster) || monster.state === 1) {
+          px = this.viewX - (this.pos.x - monster.x);
+          py = this.viewY - (this.pos.y - monster.y);
+          dx = (this.pos.x - monster.x) / 20;
+          dy = (this.pos.y - monster.y) / 20;
+          visible = true;
+          for (i = k = 0; k <= 20; i = ++k) {
+            if (this.wallAt({
+              x: monster.x + dx * i,
+              y: monster.y + dy * i
+            })) {
+              visible = false;
+            }
+          }
+          if (visible && monster.state === 0) {
+            results.push(monster.state = 1);
+          } else if (monster.state === 1) {
+            angDist = Vectors.angleDistBetweenPoints(monster, this.pos);
+            dist = angDist.distance;
+            angle = angDist.angle;
+            if (visible && this.light.on && dist > 40 && (dist < this.light.viewRadius)) {
+              speed = this.monsterSpeed * (dist / this.light.lightValue) / 2;
+              angle += 0.5;
+            } else {
+              speed = this.monsterSpeed;
+            }
+            stuck = true;
+            attempts = 0;
+            results.push((function() {
+              var results1;
+              results1 = [];
+              while (stuck && attempts < 20) {
+                newPos = Vectors.addVectorToPoint(monster, angle, speed * delta);
+                tp1 = Vectors.addVectorToPoint(newPos, angle + 1.0, 18.0);
+                tp2 = Vectors.addVectorToPoint(newPos, angle - 1.0, 18.0);
+                attempts += 1;
+                if (this.wallAt(tp1)) {
+                  angle -= 0.3;
+                  results1.push(speed = speed + 15);
+                } else if (this.wallAt(tp2)) {
+                  angle += 0.4;
+                  results1.push(speed = speed + 10);
+                } else {
+                  monster.x = newPos.x;
+                  monster.y = newPos.y;
+                  stuck = false;
+                  if (this.state === 0) {
+                    if (Vectors.distBetweenPoints(this.pos, monster) < 22) {
+                      results1.push(this.die());
+                    } else {
+                      results1.push(void 0);
+                    }
+                  } else {
+                    results1.push(void 0);
+                  }
+                }
+              }
+              return results1;
+            }).call(this));
+          } else {
+            results.push(void 0);
+          }
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    };
+
+    Game.prototype.die = function() {
+      var pg;
+      byId('viewport').className = 'dead';
+      pg = byId('player-ghost');
+      pg.style.top = this.playerEl.style.top;
+      pg.style.left = this.playerEl.style.left;
+      this.state = 1;
+      return say('Agh! No! you let me die :(', 4, 10);
+    };
+
+    Game.prototype.win = function() {
+      byId('viewport').className = 'win';
+      this.state = 2;
+      this.playerEl.className = 'down';
+      this.light.addPower();
+      return say("Thankyou so much!<br>I think I'll be ok from here :)", 100, 200);
     };
 
     Game.prototype.draw = function(delta) {
@@ -138,13 +250,19 @@
       return this.changed = false;
     };
 
+    Game.prototype.wallAt = function(pos) {
+      return this.map.pixelAt(pos.x, pos.y)[3] > 10;
+    };
+
     Game.prototype.compositeCanvas = function() {
       this.viewCtx.fillStyle = '#585655';
       this.viewCtx.fillRect(0, 0, game.viewCanvas.width, game.viewCanvas.height);
       this.viewCtx.drawImage(this.map.floorCanvas, this.viewX - this.pos.x, this.viewY - this.pos.y);
-      this.itemsCtx.globalCompositeOperation = 'destination-out';
-      this.itemsCtx.drawImage(this.shadowCanvas, 0, 0);
-      this.itemsCtx.globalCompositeOperation = 'source-over';
+      if (true) {
+        this.itemsCtx.globalCompositeOperation = 'destination-out';
+        this.itemsCtx.drawImage(this.shadowCanvas, 0, 0);
+        this.itemsCtx.globalCompositeOperation = 'source-over';
+      }
       this.maskCtx.drawImage(this.shadowCanvas, 0, 0);
       this.viewCtx.drawImage(this.itemsCanvas, 0, 0);
       if (this.light.on) {
@@ -200,7 +318,7 @@
             eval(t.action);
           }
           if (t.msg) {
-            say(t.msg, 0);
+            say(t.msg, 0, 0);
           }
           results.push(t.used = true);
         } else {
@@ -280,6 +398,11 @@
           ctx.save();
           ctx.translate(monster.x, monster.y);
           ctx.rotate(angDist.angle);
+          if (monster.state === 1) {
+            ctx.fillStyle = '#f0f';
+          } else {
+            ctx.fillStyle = '#0f0';
+          }
           ctx.fillStyle = '#000';
           ctx.beginPath();
           ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -595,7 +718,7 @@
     }), holdTime);
     return setTimeout((function() {
       return o.removeChild(el);
-    }), holdTime + 4000);
+    }), holdTime + 4000 + delay);
   };
 
   window.saySoon = function(msg, holdTime, delay) {
@@ -704,13 +827,12 @@
       start: [76, 49],
       exit: [37, 21],
       monsters: [[32, 49], [80, 18], [102, 19], [62, 21], [76, 38], [57, 24], [113, 72], [116, 75], [117, 72], [115, 63], [73, 67], [49, 72], [5, 70], [13, 35], [49, 75], [97, 70], [86, 12], [63, 59], [91, 22]],
-      orbs: [[50, 37], [60, 61], [35, 33], [24, 75], [10, 65], [10, 62], [18, 48], [105, 77], [114, 50], [116, 16], [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34], [72, 45], [79, 49], [80, 49]],
+      orbs: [[60, 61], [35, 33], [10, 62], [18, 48], [105, 77], [114, 50], [116, 16], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [72, 45], [80, 49], [51, 46]],
       triggers: [
         {
           x: 70,
           y: 43,
           r: 3,
-          name: "msg1",
           msg: "Let's get out of here"
         }, {
           x: 85,

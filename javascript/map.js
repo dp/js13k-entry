@@ -50,6 +50,10 @@
       return this.tiles = tiles;
     };
 
+    Map.prototype.tileAtPos = function(pos) {
+      return this.tiles[Math.floor(pox.x / this.tileSize)][Math.floor(pox.y / this.tileSize)];
+    };
+
     Map.prototype.generateCellular = function() {
       var j, len, ref, results, row, tile, x, y;
       ref = this.tiles;
@@ -380,6 +384,8 @@
 
     Map.prototype.pixelAt = function(x, y) {
       var alpha, blue, green, offset, red;
+      x = Math.floor(x);
+      y = Math.floor(y);
       offset = ((this.canvas.width * y) + x) * 4;
       red = this.imageData.data[offset];
       green = this.imageData.data[offset + 1];

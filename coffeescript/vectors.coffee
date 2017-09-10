@@ -26,9 +26,9 @@ Vectors =
   rotatePath: (path, angle) ->
     path.map (p) => @rotatePoint(p, angle)
 
-  addVectorToPoint: (point, direction, length) ->
+  addVectorToPoint: (point, angRad, length) ->
 #    angRad = @degToRad(direction)
-    angRad = direction
+#    angRad = direction
     newPoint = x:0, y:0
     newPoint.x = point.x + (Math.cos(angRad) * length)
     newPoint.y = point.y + (Math.sin(angRad) * length)

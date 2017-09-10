@@ -3,6 +3,7 @@ class Game
         @map = new Map('map', mapParams)
         @map.draw()
         @tileSize = @map.tileSize
+        @state = 0
 
         @playerEl = byId('player')
         @lightEl = byId('light')
@@ -48,6 +49,7 @@ class Game
         @changed = true
         @lines = []
         @speed = 125
+        @monsterSpeed = 140
 
         @initLines()
         @light.turnOff(5)
@@ -62,51 +64,152 @@ class Game
             delta = 0
         @lastTimestamp = timestamp
 
-        @light.update(delta)
+        if @state == 1
+            # dead
+            pg = byId('player-ghost')
+            pg.style.top = parseInt(pg.style.top) - 1 + 'px'
+        else if @state == 2
+            # winning
+            if @light.tweening
+                @light.update(delta)
+            @changed = true
+        else
+            # playing
 
-        @changed = true
-
-        if right || left || up || down
-            testRange = 24 / pixels
-            newPos = {x:@pos.x, y:@pos.y}
-            if right
-                newPos.x = @pos.x + @speed * delta
-                pixel = @map.pixelAt(Math.floor(newPos.x) + testRange, Math.floor(newPos.y))
-                if pixel[3] < 10
-                    @pos.x = newPos.x
-                @playerEl.className = 'right'
-            if left
-                newPos.x = @pos.x - @speed * delta
-                pixel = @map.pixelAt(Math.floor(newPos.x) - testRange, Math.floor(newPos.y))
-                if pixel[3] < 10
-                    @pos.x = newPos.x
-                @playerEl.className = 'left'
-            if down
-                newPos.y = @pos.y + @speed * delta
-                pixel = @map.pixelAt(Math.floor(newPos.x), Math.floor(newPos.y) + testRange)
-                if pixel[3] < 10
-                    @pos.y = newPos.y
-                @playerEl.className = 'down'
-            if up
-                newPos.y = @pos.y - @speed * delta
-                pixel = @map.pixelAt(Math.floor(newPos.x), Math.floor(newPos.y) - testRange)
-                if pixel[3] < 10
-                    @pos.y = newPos.y
-                @playerEl.className = 'up'
-            @lightEl.className = @playerEl.className
+            @light.update(delta)
 
             @changed = true
-        if window.toggleLight
-            if @light.on
-                @light.turnOff()
-            else
-                @light.turnOn()
-            window.toggleLight = false
-            @changed = true
 
-        @playerTouchingOrb()
-        @playerTouchingTrigger()
+            if right || left || up || down
+                testRange = 24 / pixels
+                newPos = {x:@pos.x, y:@pos.y}
+                if right
+                    newPos.x = @pos.x + @speed * delta
+                    pixel = @map.pixelAt(newPos.x + testRange, newPos.y)
+                    if pixel[3] < 10
+                        @pos.x = newPos.x
+                    @playerEl.className = 'right'
+                if left
+                    newPos.x = @pos.x - @speed * delta
+                    pixel = @map.pixelAt(newPos.x - testRange, newPos.y)
+                    if pixel[3] < 10
+                        @pos.x = newPos.x
+                    @playerEl.className = 'left'
+                if down
+                    newPos.y = @pos.y + @speed * delta
+                    pixel = @map.pixelAt(newPos.x, newPos.y + testRange)
+                    if pixel[3] < 10
+                        @pos.y = newPos.y
+                    @playerEl.className = 'down'
+                if up
+                    newPos.y = @pos.y - @speed * delta
+                    pixel = @map.pixelAt(newPos.x, newPos.y - testRange)
+                    if pixel[3] < 10
+                        @pos.y = newPos.y
+                    @playerEl.className = 'up'
+                @lightEl.className = @playerEl.className
+
+                @changed = true
+
+                if @itemInRange(x:@exit.x, y:@exit.y - 70, 80)
+                    @win()
+
+            if window.toggleLight
+                if @light.on
+                    @light.turnOff()
+                else
+                    @light.turnOn()
+                window.toggleLight = false
+                @changed = true
+
+            @playerTouchingOrb()
+            @playerTouchingTrigger()
+            @moveMonsters(delta)
         @draw(delta)
+
+    moveMonsters: (delta) ->
+        for monster, i in @monsters
+            if @itemOnScreen(monster) || monster.state == 1
+                px = @viewX - (@pos.x - monster.x)
+                py = @viewY - (@pos.y - monster.y)
+                dx = (@pos.x - monster.x) / 20
+                dy = (@pos.y - monster.y) / 20
+                visible = true
+                for i in [0..20]
+                    if @wallAt(x:monster.x + dx * i, y:monster.y + dy * i)
+#                        @viewCtx.fillStyle = '#f00'
+                        visible = false
+#                    @viewCtx.fillRect(px + dx * i, py + dy * i, 2, 2)
+
+                if visible && monster.state == 0
+                    monster.state = 1
+
+                # monster idle. see if they can see player
+                else if monster.state == 1
+                    # monster has seen player. now to follow them
+                    angDist = Vectors.angleDistBetweenPoints(monster, @pos)
+                    dist = angDist.distance
+                    angle = angDist.angle
+                    if visible && @light.on && dist > 40 && (dist < @light.viewRadius)
+                        speed = @monsterSpeed * (dist / @light.lightValue) / 2
+                        angle += 0.5
+                    else
+                        speed = @monsterSpeed
+                    stuck = true
+                    attempts = 0
+                    while stuck && attempts < 20
+                        newPos = Vectors.addVectorToPoint(monster, angle, speed * delta)
+                        # test two points in front of the monster
+                        tp1 = Vectors.addVectorToPoint(newPos, angle + 1.0, 18.0)
+                        tp2 = Vectors.addVectorToPoint(newPos, angle - 1.0, 18.0)
+#                        @viewCtx.strokeStyle = '#88f'
+#                        @viewCtx.beginPath()
+#                        @viewCtx.moveTo(@viewX - (@pos.x - tp1.x), @viewY - (@pos.y - tp1.y))
+#                        @viewCtx.lineTo(@viewX - (@pos.x - newPos.x), @viewY - (@pos.y - newPos.y))
+#                        @viewCtx.lineTo(@viewX - (@pos.x - tp2.x), @viewY - (@pos.y - tp2.y))
+#                        @viewCtx.stroke()
+                        attempts += 1
+                        if @wallAt(tp1)
+#                            @viewCtx.strokeStyle = '#f0f'
+#                            @viewCtx.beginPath()
+#                            @viewCtx.moveTo(@viewX - (@pos.x - tp1.x), @viewY - (@pos.y - tp1.y))
+#                            @viewCtx.lineTo(@viewX - (@pos.x - newPos.x), @viewY - (@pos.y - newPos.y))
+#                            @viewCtx.stroke()
+                            angle -= 0.3
+                            speed = speed + 15
+                        else if @wallAt(tp2)
+#                            @viewCtx.strokeStyle = '#0ff'
+#                            @viewCtx.beginPath()
+#                            @viewCtx.moveTo(@viewX - (@pos.x - newPos.x), @viewY - (@pos.y - newPos.y))
+#                            @viewCtx.lineTo(@viewX - (@pos.x - tp2.x), @viewY - (@pos.y - tp2.y))
+#                            @viewCtx.stroke()
+                            angle += 0.4
+                            speed = speed + 10
+                        else
+                            monster.x = newPos.x
+                            monster.y = newPos.y
+                            stuck = false
+                            if @state == 0
+                                if Vectors.distBetweenPoints(@pos, monster) < 22
+                                    @die()
+
+    die: ->
+        byId('viewport').className='dead'
+        pg = byId('player-ghost')
+        pg.style.top = @playerEl.style.top
+        pg.style.left = @playerEl.style.left
+        @state = 1
+        say('Agh! No! you let me die :(', 4, 10)
+
+    win: ->
+        byId('viewport').className='win'
+        @state = 2
+        @playerEl.className = 'down'
+#        @pos.x = @exit.x
+#        @pos.y = @exit.y + 20
+        @light.addPower()
+
+        say("Thankyou so much!<br>I think I'll be ok from here :)", 100, 200)
 
     draw: (delta) ->
         return false unless @changed
@@ -138,6 +241,10 @@ class Game
         @shadowCtx.restore()
         @compositeCanvas()
         @changed = false
+#        @imageData = @viewCtx.getImageData(0, 0, @viewCanvas.width, @viewCanvas.height)
+
+    wallAt: (pos) ->
+        @map.pixelAt(pos.x, pos.y)[3] > 10
 
     compositeCanvas: ->
         @viewCtx.fillStyle = '#585655'
@@ -146,9 +253,10 @@ class Game
         @viewCtx.drawImage(@map.floorCanvas, @viewX - @pos.x, @viewY - @pos.y)
 
         # remove items in shadows from items canvas
-        @itemsCtx.globalCompositeOperation = 'destination-out'
-        @itemsCtx.drawImage(@shadowCanvas,0, 0)
-        @itemsCtx.globalCompositeOperation = 'source-over'
+        if true
+            @itemsCtx.globalCompositeOperation = 'destination-out'
+            @itemsCtx.drawImage(@shadowCanvas,0, 0)
+            @itemsCtx.globalCompositeOperation = 'source-over'
 
         # remove items in shadows from light mask canvas
 #        @maskCtx.globalCompositeOperation = 'destination-out'
@@ -194,7 +302,7 @@ class Game
             if @itemInRange(t, t.r) && !t.used
                 console.log 't', t.msg
                 eval(t.action) if t.action
-                say(t.msg, 0) if t.msg
+                say(t.msg, 0, 0) if t.msg
                 t.used = true
 
     drawOrbs: ->
@@ -272,6 +380,10 @@ class Game
                 ctx.save()
                 ctx.translate(monster.x, monster.y)
                 ctx.rotate(angDist.angle)
+                if monster.state == 1
+                    ctx.fillStyle = '#f0f'
+                else
+                    ctx.fillStyle = '#0f0'
                 ctx.fillStyle = '#000'
                 # body
                 ctx.beginPath()
@@ -563,7 +675,7 @@ window.say = (msg, holdTime, delay) ->
     o.appendChild(el)
     setTimeout( (->el.className = 'text'), 100)
     setTimeout( (->el.className = 'text fade-out'), holdTime)
-    setTimeout( (->o.removeChild(el)), holdTime + 4000)
+    setTimeout( (->o.removeChild(el)), holdTime + 4000 + delay)
 
 window.saySoon = (msg, holdTime, delay) ->
     setTimeout( (-> say(msg, holdTime)), delay * 1000)
@@ -688,10 +800,9 @@ window.initGame = ->
         exit: [37, 21],
         monsters: [[32, 49], [80, 18], [102, 19], [62, 21], [76, 38], [57, 24], [113, 72], [116, 75], [117, 72],
             [115, 63], [73, 67], [49, 72], [5, 70], [13, 35], [49, 75], [97, 70], [86, 12], [63, 59], [91, 22]],
-        orbs: [[50, 37], [60, 61], [35, 33], [24, 75], [10, 65], [10, 62], [18, 48], [105, 77], [114, 50], [116, 16],
-            [102, 27], [49, 29], [73, 38], [80, 5], [79, 72], [101, 58], [5, 24], [91, 34], [72, 45], [79, 49],
-            [80, 49]],
-        triggers: [{x: 70,y: 43,r: 3,name: "msg1",msg: "Let's get out of here"},
+        orbs: [[60,61],[35,33],[10,62],[18,48],[105,77],[114,50],[116,16],[49,29],[73,38],[80,5],[79,72],[101,58],
+            [72,45],[80,49],[51,46]],
+        triggers: [{x: 70,y: 43,r: 3,msg: "Let's get out of here"},
             {x: 85,y: 59,r: 7,msg: "I think we're headed in the right direction"},
             {x: 117,y: 69,r: 5,msg: "I've got a bad feeling about this ..."},
             {x: 52,y: 21,r: 7,msg: "I'm sure the air is fresher here"},

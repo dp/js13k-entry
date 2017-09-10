@@ -71,8 +71,8 @@ body {
 .text {
     position: absolute;
     top: 80%;
-    left: 20%;
-    right: 20%;
+    left: 10%;
+    right: 10%;
     color: white;
     font-size: 40pt;
     font-family:sans-serif;
@@ -88,16 +88,33 @@ body {
     text-align: center;
 }
 
+.dead .text {
+    color: #b00;
+    filter: blur(2px);
+    transition: all 1s;
+    font-size: 60pt;
+}
+.win .text {
+    color: #4b4;
+    filter: none;
+    transition: all 2s;
+}
 .text.fade-out {
-    top: 70%;
+    /*top: 75%;*/
     /*left: 15%;*/
     /*transform: rotate(-15deg);*/
     opacity: 0;
-    font-size: 20pt;
-    filter: blur(20px);
-    transition: all 1s;
+    /*font-size: 20pt;*/
+    filter: blur(10px);
+    transition: all 0.5s;
     transition-timing-function: ease-in;
 
+}
+.dead .text.fade-out {
+    color: #b00;
+    filter: blur(2px);
+    transition: all 5s;
+    font-size: 60pt;
 }
 .text.fade-in {
     top: 81%;
@@ -127,26 +144,38 @@ body {
 #player.up, #light.up {
     background-position-y: -144px;
 }
-#player.dead {
+.dead #player {
     background-position-y: -96px;
     transform: rotate(90deg);
     background-image: url('images/Change-light-off.png');
     margin-top: 16px;
 }
-#light.dead {
-    display: none;
+.dead #light {
+    display: none !important;
 }
 #player-ghost {
-    display: block;
+    display: none;
     position: absolute;
     width: 60px;
     height: 48px;
     background-image: url('images/Change-light-off.png');
-    left: 818px;
-    top: 400px;
-    transition: all 10s;
     opacity: 0.5;
 }
+.dead #player-ghost {
+    display: block;
+}
 #player-ghost.up {
-    top: -50px;
+
+}
+#death {
+    background: linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0));
+    position: absolute;
+    top:0;
+    bottom: 48%;
+    left: 48%;
+    right: 48%;
+    display: none;
+}
+.dead #death {
+    display: block;
 }

@@ -42,6 +42,9 @@ class Map
                     tiles[x][y] = true
         @tiles = tiles
 
+    tileAtPos: (pos) ->
+        @tiles[Math.floor(pox.x / @tileSize)][Math.floor(pox.y / @tileSize)]
+
     generateCellular: ->
 #        @cellularPass()
         for row, x in @tiles
@@ -222,6 +225,8 @@ class Map
         @imageData = @ctx.getImageData(0, 0, @canvas.width, @canvas.height)
 
     pixelAt: (x, y) ->
+        x = Math.floor(x)
+        y = Math.floor(y)
         offset = ((@canvas.width * y) + x) * 4
         red = @imageData.data[offset]
         green = @imageData.data[offset + 1]

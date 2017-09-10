@@ -49,10 +49,10 @@
     function Light(lightEl) {
       this.lightEl = lightEl;
       this.on = false;
-      this.lightValue = 150;
+      this.lightValue = 100;
       this.viewRadius = 0;
       this.alpha = 1.0;
-      this.reduction = 1;
+      this.reduction = 4;
       this.tweening = false;
       this.tweenTimePassed = 0;
       this.tweenTime = 0;
@@ -124,7 +124,7 @@
     };
 
     Light.prototype.addPower = function() {
-      this.lightValue += 80;
+      this.lightValue += 100;
       return this.turnOn(1.0);
     };
 
