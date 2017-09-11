@@ -453,7 +453,7 @@
     };
 
     Map.prototype.drawFloor = function() {
-      var brightness, colour, count, hue, hue1, hue2, i, j, k, l, m, n, ref, ref1, ref2, ref3, ref4, results, v1, v2, v3, v4, v5, x, y;
+      var brightness, colour, count, hue1, hue2, i, j, k, l, m, n, ref, ref1, ref2, ref3, ref4, results, v1, v2, v3, v4, v5, x, y;
       this.floorCtx.fillStyle = '#888';
       this.floorCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       hue1 = this.randInt(0, 360);
@@ -471,11 +471,6 @@
       }
       for (x = l = 0, ref2 = this.w; 0 <= ref2 ? l <= ref2 : l >= ref2; x = 0 <= ref2 ? ++l : --l) {
         for (y = m = 0, ref3 = this.h; 0 <= ref3 ? m <= ref3 : m >= ref3; y = 0 <= ref3 ? ++m : --m) {
-          if (Math.random() > 0.5) {
-            hue = hue1;
-          } else {
-            hue = hue2;
-          }
           colour = "hsla(" + (this.randHue(hue1, hue2)) + "," + (this.randInt(0, 5)) + "%," + (this.randInt(60, 20)) + "%,0.8)";
           this.drawRandomisedRect(x * this.tileSize + this.randInt(0, v1), y * this.tileSize + this.randInt(0, v1), this.tileSize + this.randInt(0, v2), this.tileSize + this.randInt(0, v2), colour, v3);
         }

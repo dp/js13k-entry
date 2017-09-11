@@ -1,8 +1,4 @@
 class Map
-
-    # for use with dungeon generator
-    # - comment swap the two "@canvas = document ..." lines 18,19
-    # - change the was stroke/fill colours in drawWalls, lines  231 +
     constructor: (canvasId, args) ->
         @w = parseInt(args.width)
         @h = parseInt(args.height)
@@ -63,7 +59,7 @@ class Map
         for x in [1...@w]
             for y in [1...@h]
                 @wTiles[x][y] = @tiles[x][y]
-                if passType.match "combine" #|| passType.match "reseed"
+                if passType.match "combine"
                     if @nearbyTiles(x, y, 1) >= 5
                         @tiles[x][y] = true if passType == 'combine-aggressive'
                         @wTiles[x][y] = true
@@ -199,9 +195,8 @@ class Map
                         tile.lines.push line
 
     findNormals: (x1, y1, x2, y2) ->
-        mp = 1 #Vectors.centreLine(x1, y1, x2, y2)
+        mp = 1
         angDist = Vectors.angleDistBetweenPoints({x:x1, y:y1}, {x:x2, y:y2})
-#        angDist.angle += Math.PI * 2 if angDist.angle < 0
         mp:mp, ang: angDist.angle, normal:angDist.angle - Math.PI/2
 
     print: ->
@@ -217,11 +212,8 @@ class Map
         @findEdges()
         @moveCorners()
         @findSides()
-#        @ctx.fillStyle = '#eee'
-#        @ctx.fillRect(0,0, @canvas.width, @canvas.height)
         @drawFloor()
         @drawWalls(@ctx)
-#        @drawEdges(@ctx)
         @imageData = @ctx.getImageData(0, 0, @canvas.width, @canvas.height)
 
     pixelAt: (x, y) ->
@@ -233,10 +225,8 @@ class Map
         blue = @imageData.data[offset + 2]
         alpha = @imageData.data[offset + 3]
         [red, green, blue, alpha]
-#        [0,0,0,0]
 
     drawWalls: (ctx) ->
-        # colours here https://www.computerhope.com/htmcolor.htm
         if @gen
             ctx.fillStyle = '#ccc'
             ctx.strokeStyle = '#ccc'
@@ -253,7 +243,6 @@ class Map
                     ctx.lineTo(tile.corners.bl.x, tile.corners.bl.y)
                     ctx.fill()
                     ctx.stroke()
-#                    @ctx.fillRect(x * @tileSize, y * @tileSize, @tileSize, @tileSize)
 
     drawEdges: (ctx) ->
         ctx.strokeStyle = 'sandstone'
@@ -277,21 +266,12 @@ class Map
         v3 = 3
         v4 = 1
         v5 = 4
-#        v1 = 10
-#        v2 = 20
-#        v3 = 5
-#        v4 = 3
-#        v5 = 7
         for x in [0..@w]
             for y in [0..@h]
                 colour = "hsla(#{@randHue(hue1, hue2)},#{@randInt(0,5)}%,#{@randInt(60,20)}%,0.5)"
                 @drawRandomisedRect(x * @tileSize+@randInt(0,v1), y * @tileSize+@randInt(0,v1), @tileSize+@randInt(0,v2), @tileSize+@randInt(0,v2), colour, v3)
         for x in [0..@w]
             for y in [0..@h]
-                if Math.random() > 0.5
-                    hue = hue1
-                else
-                    hue = hue2
                 colour = "hsla(#{@randHue(hue1, hue2)},#{@randInt(0,5)}%,#{@randInt(60,20)}%,0.8)"
                 @drawRandomisedRect(x * @tileSize+@randInt(0,v1), y * @tileSize+@randInt(0,v1), @tileSize+@randInt(0,v2), @tileSize+@randInt(0,v2), colour, v3)
         for x in [0..@w]
