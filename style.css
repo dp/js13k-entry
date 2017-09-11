@@ -96,7 +96,6 @@ body {
 }
 .win .text {
     color: #4b4;
-    filter: none;
     transition: all 2s;
 }
 .text.fade-out {
@@ -107,8 +106,7 @@ body {
     /*font-size: 20pt;*/
     filter: blur(10px);
     transition: all 0.5s;
-    transition-timing-function: ease-in;
-
+    transition-timing-function: linear;
 }
 .dead .text.fade-out {
     color: #b00;
@@ -117,9 +115,7 @@ body {
     font-size: 60pt;
 }
 .text.fade-in {
-    top: 81%;
     opacity: 0;
-    filter: blur(20px);
 }
 #player, #light {
     display: block;
@@ -171,7 +167,7 @@ body {
     background: linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0));
     position: absolute;
     top:0;
-    bottom: 48%;
+    bottom: 50%;
     left: 48%;
     right: 48%;
     display: none;

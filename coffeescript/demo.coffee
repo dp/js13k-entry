@@ -19,8 +19,8 @@ class Game
         # mask canvas
         @maskCanvas = byId('light-mask')
         @maskCtx = @maskCanvas.getContext('2d')
-        @maskCanvas.width = Math.floor(window.innerWidth / pixels)
-        @maskCanvas.height = Math.floor(window.innerHeight / pixels)
+        @maskCanvas.width = Math.floor(window.innerWidth / 2)
+        @maskCanvas.height = Math.floor(window.innerHeight / 2)
         @maskCanvas.style.width = window.innerWidth + 'px'
         @maskCanvas.style.height = window.innerHeight + 'px'
         @maskCtx.fillStyle = '#000'
@@ -46,15 +46,14 @@ class Game
 
         @positionMap()
         @pos = @tilePosToGameXY(gameParams.start)
-        @changed = true
         @lines = []
         @speed = 125
         @monsterSpeed = 140
 
         @initLines()
-        @light.turnOff(5)
-#        openingText()
-        setTimeout( (->window.requestAnimationFrame update), 1000)
+        @light.turnOff(3)
+        @openingText()
+        requestAnimationFrame update
 
 
     update: (timestamp) ->
@@ -70,46 +69,28 @@ class Game
             pg.style.top = parseInt(pg.style.top) - 1 + 'px'
         else if @state == 2
             # winning
-            if @light.tweening
-                @light.update(delta)
-            @changed = true
+                @light.update(delta) if @light.tweening
         else
             # playing
-
             @light.update(delta)
 
-            @changed = true
-
             if right || left || up || down
-                testRange = 24 / pixels
-                newPos = {x:@pos.x, y:@pos.y}
-                if right
-                    newPos.x = @pos.x + @speed * delta
-                    pixel = @map.pixelAt(newPos.x + testRange, newPos.y)
-                    if pixel[3] < 10
-                        @pos.x = newPos.x
-                    @playerEl.className = 'right'
-                if left
-                    newPos.x = @pos.x - @speed * delta
-                    pixel = @map.pixelAt(newPos.x - testRange, newPos.y)
-                    if pixel[3] < 10
-                        @pos.x = newPos.x
-                    @playerEl.className = 'left'
-                if down
-                    newPos.y = @pos.y + @speed * delta
-                    pixel = @map.pixelAt(newPos.x, newPos.y + testRange)
-                    if pixel[3] < 10
-                        @pos.y = newPos.y
-                    @playerEl.className = 'down'
-                if up
-                    newPos.y = @pos.y - @speed * delta
-                    pixel = @map.pixelAt(newPos.x, newPos.y - testRange)
-                    if pixel[3] < 10
-                        @pos.y = newPos.y
-                    @playerEl.className = 'up'
-                @lightEl.className = @playerEl.className
+                dist = @speed * delta
+                testRange = 12 + dist
 
-                @changed = true
+                if right
+                    @pos.x += dist unless @wallAt(x:@pos.x + testRange, y:@pos.y)
+                    className = 'right'
+                if left
+                    @pos.x -= dist unless @wallAt(x:@pos.x - testRange, y:@pos.y)
+                    className = 'left'
+                if down
+                    @pos.y += dist unless @wallAt(x:@pos.x, y:@pos.y + testRange)
+                    className = 'down'
+                if up
+                    @pos.y -= dist unless @wallAt(x:@pos.x, y:@pos.y - testRange)
+                    className = 'up'
+                @lightEl.className = @playerEl.className = className
 
                 if @itemInRange(x:@exit.x, y:@exit.y - 70, 80)
                     @win()
@@ -120,7 +101,6 @@ class Game
                 else
                     @light.turnOn()
                 window.toggleLight = false
-                @changed = true
 
             @playerTouchingOrb()
             @playerTouchingTrigger()
@@ -130,16 +110,12 @@ class Game
     moveMonsters: (delta) ->
         for monster, i in @monsters
             if @itemOnScreen(monster) || monster.state == 1
-                px = @viewX - (@pos.x - monster.x)
-                py = @viewY - (@pos.y - monster.y)
                 dx = (@pos.x - monster.x) / 20
                 dy = (@pos.y - monster.y) / 20
                 visible = true
                 for i in [0..20]
                     if @wallAt(x:monster.x + dx * i, y:monster.y + dy * i)
-#                        @viewCtx.fillStyle = '#f00'
                         visible = false
-#                    @viewCtx.fillRect(px + dx * i, py + dy * i, 2, 2)
 
                 if visible && monster.state == 0
                     monster.state = 1
@@ -151,7 +127,7 @@ class Game
                     dist = angDist.distance
                     angle = angDist.angle
                     if visible && @light.on && dist > 40 && (dist < @light.viewRadius)
-                        speed = @monsterSpeed * (dist / @light.lightValue) / 2
+                        speed = @monsterSpeed * (dist / @light.lightValue) / 3
                         angle += 0.5
                     else
                         speed = @monsterSpeed
@@ -162,27 +138,11 @@ class Game
                         # test two points in front of the monster
                         tp1 = Vectors.addVectorToPoint(newPos, angle + 1.0, 18.0)
                         tp2 = Vectors.addVectorToPoint(newPos, angle - 1.0, 18.0)
-#                        @viewCtx.strokeStyle = '#88f'
-#                        @viewCtx.beginPath()
-#                        @viewCtx.moveTo(@viewX - (@pos.x - tp1.x), @viewY - (@pos.y - tp1.y))
-#                        @viewCtx.lineTo(@viewX - (@pos.x - newPos.x), @viewY - (@pos.y - newPos.y))
-#                        @viewCtx.lineTo(@viewX - (@pos.x - tp2.x), @viewY - (@pos.y - tp2.y))
-#                        @viewCtx.stroke()
                         attempts += 1
                         if @wallAt(tp1)
-#                            @viewCtx.strokeStyle = '#f0f'
-#                            @viewCtx.beginPath()
-#                            @viewCtx.moveTo(@viewX - (@pos.x - tp1.x), @viewY - (@pos.y - tp1.y))
-#                            @viewCtx.lineTo(@viewX - (@pos.x - newPos.x), @viewY - (@pos.y - newPos.y))
-#                            @viewCtx.stroke()
                             angle -= 0.3
                             speed = speed + 15
                         else if @wallAt(tp2)
-#                            @viewCtx.strokeStyle = '#0ff'
-#                            @viewCtx.beginPath()
-#                            @viewCtx.moveTo(@viewX - (@pos.x - newPos.x), @viewY - (@pos.y - newPos.y))
-#                            @viewCtx.lineTo(@viewX - (@pos.x - tp2.x), @viewY - (@pos.y - tp2.y))
-#                            @viewCtx.stroke()
                             angle += 0.4
                             speed = speed + 10
                         else
@@ -199,20 +159,16 @@ class Game
         pg.style.top = @playerEl.style.top
         pg.style.left = @playerEl.style.left
         @state = 1
-        say('Agh! No! you let me die :(', 4, 10)
+        @say('You had one job ... ', 4, 10)
 
     win: ->
         byId('viewport').className='win'
         @state = 2
         @playerEl.className = 'down'
-#        @pos.x = @exit.x
-#        @pos.y = @exit.y + 20
         @light.addPower()
+        @say("Thanks, you're a hero!<br>Finally, peace will return to my village", 100, 200)
 
-        say("Thankyou so much!<br>I think I'll be ok from here :)", 100, 200)
-
-    draw: (delta) ->
-        return false unless @changed
+    draw: () ->
         @shadowCtx.clearRect(0, 0, @shadowCanvas.width, @shadowCanvas.height)
         @shadowCtx.save()
         @shadowCtx.translate(@viewX - @pos.x, @viewY - @pos.y)
@@ -224,24 +180,14 @@ class Game
         @maskCtx.fillStyle = '#000'
         @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
 
-        #        @itemsCtx.fillStyle = 'red'
-#        @itemsCtx.fillRect(@pos.x, @pos.y, 100, 100)
         @drawOrbs()
         @drawMonsters()
-#        @drawPointRays()
-#        @drawPoints()
-        @drawLineShadows() #if @light.on
-#        @positionMap()
+        @drawLineShadows()
         @drawPlayerShadow()
         @drawExit(@itemsCtx)
-#        @map.drawWalls(@shadowCtx)
-#        @map.drawEdges(@shadowCtx)
-#        @drawLines()
         @itemsCtx.restore()
         @shadowCtx.restore()
         @compositeCanvas()
-        @changed = false
-#        @imageData = @viewCtx.getImageData(0, 0, @viewCanvas.width, @viewCanvas.height)
 
     wallAt: (pos) ->
         @map.pixelAt(pos.x, pos.y)[3] > 10
@@ -259,28 +205,25 @@ class Game
             @itemsCtx.globalCompositeOperation = 'source-over'
 
         # remove items in shadows from light mask canvas
-#        @maskCtx.globalCompositeOperation = 'destination-out'
         @maskCtx.drawImage(@shadowCanvas,0, 0)
-#        @maskCtx.globalCompositeOperation = 'source-over'
 
         # draw items
         @viewCtx.drawImage(@itemsCanvas, 0, 0)
 
         # draw shadows
         if @light.on
-            @viewCtx.globalAlpha = 0.7
+            @viewCtx.globalAlpha = 0.6
             @viewCtx.drawImage(@shadowCanvas,0, 0)
             @viewCtx.globalAlpha = 1
 
         # draw dungeon walls
         @viewCtx.drawImage(@map.canvas, @viewX - @pos.x, @viewY - @pos.y)
-#        @drawExit(game.viewCtx)
         @drawLightMask()
 
     drawPlayerShadow: ->
-        radius = 24 / pixels
+        radius = 24 / 2
         @shadowCtx.save()
-        @shadowCtx.translate(@pos.x, @pos.y + 24 / pixels)
+        @shadowCtx.translate(@pos.x, @pos.y + 24 / 2)
         @shadowCtx.scale(1, 0.25)
         grd = @shadowCtx.createRadialGradient(0,0, 0, 0,0, radius)
         grd.addColorStop(0, 'rgba(0,0,0,0.6)')
@@ -302,29 +245,30 @@ class Game
             if @itemInRange(t, t.r) && !t.used
                 console.log 't', t.msg
                 eval(t.action) if t.action
-                say(t.msg, 0, 0) if t.msg
+                @say(t.msg, 0, 0) if t.msg
                 t.used = true
 
     drawOrbs: ->
         ctx = @itemsCtx
         glowRadius = 15
         orbRadius = 4
+        # glow around the orb
         glowGradient = ctx.createRadialGradient(0, 0, orbRadius, 0, 0, glowRadius)
         glowGradient.addColorStop(0, 'rgba(143,194,242,0.4)')
         glowGradient.addColorStop(1, 'rgba(191,226,226,0)')
 
+        # the orb
         orbGradient = ctx.createRadialGradient(1, -1, 1, 0, 0, orbRadius)
         orbGradient.addColorStop(0, '#bfe2e2')
         orbGradient.addColorStop(1, '#8fc2f2')
 
-        #abcff3
-        #8fc2f2
-        shadowGradient = ctx.createRadialGradient(0,0, 0, 0,0, glowRadius)
-        shadowGradient.addColorStop(0, 'rgba(191,226,226,0.4)')
-        shadowGradient.addColorStop(0.2, 'rgba(143,194,242,0.4)')
-        shadowGradient.addColorStop(1, 'rgba(143,194,242,0)')
+        # might cut shadow gradient for the moment
+#        shadowGradient = ctx.createRadialGradient(0,0, 0, 0,0, glowRadius)
+#        shadowGradient.addColorStop(0, 'rgba(191,226,226,0.4)')
+#        shadowGradient.addColorStop(0.2, 'rgba(143,194,242,0.4)')
+#        shadowGradient.addColorStop(1, 'rgba(143,194,242,0)')
 
-
+        # need to create a hole in the light mask so we can see the orb in the dark
         @maskCtx.fillStyle = "#000"
         maskRadius = glowRadius * 1.5
         grd = @maskCtx.createRadialGradient(0, 0, 0, 0, 0, maskRadius)
@@ -335,23 +279,26 @@ class Game
 
         for orb in @orbs
             if @itemOnScreen(orb) && !orb.used
-                ctx.save()
-                ctx.translate(orb.x, orb.y + 10)
-                ctx.scale(1, 0.3)
-                ctx.fillStyle = shadowGradient
-                ctx.beginPath()
-                ctx.arc(0, 0, glowRadius, 0, Math.PI * 2)
-                ctx.fill()
-                ctx.restore()
 
+                # draw shadow
+#                ctx.save()
+#                ctx.translate(orb.x, orb.y + 10)
+#                ctx.scale(1, 0.3)
+#                ctx.fillStyle = shadowGradient
+#                ctx.beginPath()
+#                ctx.arc(0, 0, glowRadius, 0, Math.PI * 2)
+#                ctx.fill()
+#                ctx.restore()
+
+                # draw glow
                 ctx.save()
                 ctx.translate(orb.x, orb.y)
-
                 ctx.fillStyle = glowGradient
                 ctx.beginPath()
                 ctx.arc(0, 0, glowRadius, 0, Math.PI * 2)
                 ctx.fill()
 
+                # draw orb
                 ctx.fillStyle = orbGradient
                 ctx.beginPath()
                 ctx.arc(0, 0, orbRadius, 0, Math.PI * 2)
@@ -359,19 +306,21 @@ class Game
 
                 ctx.restore()
 
+                # cut hole in mask
                 @maskCtx.save()
                 @maskCtx.translate(orb.x - @pos.x + @viewX, orb.y - @pos.y + @viewY)
                 @maskCtx.beginPath()
                 @maskCtx.arc(0, 0, maskRadius, 0, Math.PI * 2)
                 @maskCtx.fill()
                 @maskCtx.restore()
+
+        # make sure we set this back again!
         @maskCtx.globalCompositeOperation = 'source-over'
 
 
     drawMonsters: ->
         ctx = @itemsCtx
         eyeCtx = @maskCtx
-#        eyeCtx = @itemsCtx
         radius = 12
         for monster in @monsters
             if @itemOnScreen(monster)
@@ -380,10 +329,6 @@ class Game
                 ctx.save()
                 ctx.translate(monster.x, monster.y)
                 ctx.rotate(angDist.angle)
-                if monster.state == 1
-                    ctx.fillStyle = '#f0f'
-                else
-                    ctx.fillStyle = '#0f0'
                 ctx.fillStyle = '#000'
                 # body
                 ctx.beginPath()
@@ -400,7 +345,6 @@ class Game
 
                 # eyes that glow in the dark. these are brighter
                 eyeCtx.save()
-#                eyeCtx.translate(monster.x, monster.y)
                 eyeCtx.translate(monster.x - @pos.x + @viewX, monster.y - @pos.y + @viewY)
                 eyeCtx.rotate(angDist.angle)
                 eyeCtx.fillStyle = '#f20'
@@ -408,39 +352,16 @@ class Game
                 eyeCtx.beginPath()
                 eyeCtx.arc(-13, 4, 3, 0, Math.PI * 2)
                 eyeCtx.arc(-13, -4, 3, 0, Math.PI * 2)
-#                eyeCtx.arc(0,0, 20, 0, Math.PI * 2)
                 eyeCtx.fill()
 
                 eyeCtx.restore()
 
-#812.5 420 1237.5 178.75  demo.js:256:11
-#1562.5 420 537.5 178.75  demo.js:256:11
-#1437.5 420 612.5 178.75  demo.js:256:11
-#337.5 420 887.5 178.75
 
     itemInRange: (pos, range) ->
         (Math.abs(pos.x - @pos.x) < range) && (Math.abs(pos.y - @pos.y) < range)
 
     itemOnScreen: (pos) ->
         (Math.abs(pos.x - @pos.x) < @viewX) && (Math.abs(pos.y - @pos.y) < @viewY)
-
-    drawPoints: ->
-        @shadowCtx.fillStyle = '#008'
-        for p in @points
-            @shadowCtx.beginPath()
-            @shadowCtx.arc(p.x, p.y, 1, 0, Math.PI * 2)
-            @shadowCtx.fill()
-
-    drawPointRays: ->
-        @shadowCtx.strokeStyle = '#080'
-        @shadowCtx.beginPath()
-        for p in @points
-            angDist = Vectors.angleDistBetweenPoints @pos, p
-            if angDist.distance < 100
-                endPoint = Vectors.addVectorToPoint(p, angDist.angle, 200)
-                @shadowCtx.moveTo(p.x, p.y)
-                @shadowCtx.lineTo(endPoint.x, endPoint.y)
-        @shadowCtx.stroke()
 
     drawLines: ->
         @shadowCtx.strokeStyle = '#800'
@@ -451,82 +372,27 @@ class Game
         @shadowCtx.stroke()
 
     drawLineShadows: ->
-        lineCheckDist = 500
-        shadowDrawRadius = 500
-        @shadowCtx.lineWidth = 3
-        drawLines = []
-        for l in @lines
-            # find lines in a close box
-            if (Math.abs(l[0].x - @pos.x) < lineCheckDist) && (Math.abs(l[0].y - @pos.y) < lineCheckDist)
-                drawLines.push l
-
-#        for l in drawLines
-#            @shadowCtx.strokeStyle = '#B8B6B5'
-#            @shadowCtx.strokeStyle = '#888685'
-#            @shadowCtx.beginPath()
-#            @shadowCtx.moveTo(l[0].x, l[0].y)
-#            @shadowCtx.lineTo(l[1].x, l[1].y)
-#            @shadowCtx.stroke()
-
-#        @shadowCtx.fillStyle = 'rgba(0,0,0,0.7)'
-#        @shadowCtx.strokeStyle = 'rgba(0,0,0,0.7)'
+        # draw shadows for all line on the screen
         @shadowCtx.fillStyle = '#000'
         @shadowCtx.strokeStyle = '#000'
-        @shadowCtx.lineWidth = 1
-        for l in drawLines
-            p1 = l[0]
-            p2 = l[1]
-
-            # find lines within radius
-            angDist1 = Vectors.angleDistBetweenPoints @pos, p1
-            angDist2 = Vectors.angleDistBetweenPoints @pos, p2
-            if angDist1.distance < shadowDrawRadius || angDist2.distance < shadowDrawRadius
-
-                # draw them in green
-#                @shadowCtx.strokeStyle = '#0f0'
-#                @shadowCtx.beginPath()
-#                @shadowCtx.moveTo(l[0].x, l[0].y)
-#                @shadowCtx.lineTo(l[1].x, l[1].y)
-#                @shadowCtx.stroke()
-
-                if l[2]
-#                    @shadowCtx.strokeStyle = 'rgb(20,20,220)'
-#                    @shadowCtx.beginPath()
-#                    @shadowCtx.moveTo(l[2].mp.x, l[2].mp.y)
-#                    p2 = Vectors.addVectorToPoint(l[2].mp, l[2].normal, 50)
-#                    @shadowCtx.lineTo(p2.x, p2.y)
-#                    @shadowCtx.stroke()
-
+        for l in @lines
+            # l is an array of three pairs
+            # [{x:p1x, y:p1y}, {x:p2x, y:p2y}, {ang:a1, mp:?, normal:a2}]
+            p1 = l[0] # point 1
+            if @itemOnScreen(p1)
+#                console.log 'x'
+                p2 = l[1] # point 2
+                angDist1 = Vectors.angleDistBetweenPoints @pos, p1
+                angDist2 = Vectors.angleDistBetweenPoints @pos, p2
+                if l[2] # normal
                     # see if face pints away from player
                     angle = angDist1.angle
-
                     delta = angle - l[2].ang
                     delta += Math.PI * 2 if delta < Math.PI
                     delta -= Math.PI * 2 if delta > Math.PI
 
                     if delta < 0
                         @drawShadow(p1, p2, angDist1.angle, angDist2.angle)
-
-
-
-        #                    @shadowCtx.fillStyle = 'rgba(0,0,0,0.2)'
-#                    altPos = Vectors.addVectorToPoint(@pos, angDist1.angle + Math.PI/2, 10)
-#                    angDist1 = Vectors.angleDistBetweenPoints altPos, p1
-#                    angDist2 = Vectors.angleDistBetweenPoints altPos, p2
-#                    @drawShadow(p1, p2, angDist1.angle, angDist2.angle)
-#
-#                    altPos = Vectors.addVectorToPoint(@pos, angDist2.angle - Math.PI/2, 10)
-#                    angDist1 = Vectors.angleDistBetweenPoints altPos, p1
-#                    angDist2 = Vectors.angleDistBetweenPoints altPos, p2
-#                    @drawShadow(p1, p2, angDist1.angle, angDist2.angle)
-
-
-        # draw green circle
-#        @shadowCtx.strokeStyle = '#0f0'
-#        @shadowCtx.beginPath()
-#        @shadowCtx.arc(@pos.x, @pos.y, @lightRadius, 0, Math.PI * 2)
-#        @shadowCtx.stroke()
-        @shadowCtx.lineWidth = 1
 
 
     drawShadow: (p1, p2, ang1, ang2) ->
@@ -552,7 +418,6 @@ class Game
         grd.addColorStop(0, "rgba(255,255,255,#{@light.alpha})")
         grd.addColorStop(1, 'rgba(255,255,255,0)')
 
-#        @maskCtx.fillRect(0,0,@maskCanvas.width, @maskCanvas.height)
         @maskCtx.globalCompositeOperation = 'destination-out'
         @maskCtx.fillStyle=grd
         @maskCtx.beginPath()
@@ -560,24 +425,18 @@ class Game
         @maskCtx.fill()
         @maskCtx.globalCompositeOperation = 'source-over'
 
-        # draw red ring
-        if false
-            @maskCtx.strokeStyle = 'red'
-            @maskCtx.lineWidth = 5
-            @maskCtx.beginPath()
-            @maskCtx.arc(@viewX, @viewY, radius, 0, Math.PI * 2)
-            @maskCtx.stroke()
-            @maskCtx.lineWidth = 1
 
     drawExit: (ctx) ->
         if @itemOnScreen(@exit)
-            radius = 2 * @tileSize / pixels
+            radius = @tileSize
             unless @lightRays
                 @lightRays = []
                 for i in [0..5]
                     x = randInt( - radius, radius * 2 )
                     @lightRays.push {x: x, y: randInt(-7, 14), w: randInt(2, radius - x), h: randInt(100, 50)}
                 console.log @lightRays
+
+            # draw light circle on ground
             ctx.save()
             ctx.translate(@exit.x, @exit.y)
             ctx.scale(1, 0.4)
@@ -590,6 +449,7 @@ class Game
             ctx.fill()
             ctx.restore()
 
+            # draw light rays
             ctx.save()
             ctx.translate(@exit.x, @exit.y)
             for ray in @lightRays
@@ -605,6 +465,7 @@ class Game
                 ctx.fill()
             ctx.restore()
 
+            # cur hole in light mask
             @maskCtx.fillStyle = "#000"
             maskRadius = radius * 1.5
             grd = @maskCtx.createRadialGradient(0, 0, 0, 0, 0, maskRadius)
@@ -622,22 +483,12 @@ class Game
             @maskCtx.globalCompositeOperation = 'source-over'
 
 
-    updateMousePos: (e) ->
-        game.pos.x = e.pageX
-        game.pos.y = e.pageY - 10
-        game.changed = true
-
-    initPoints: ->
-        for i in [0..999]
-            @points[i] = {x:randInt(50, 1580), y:randInt(50, 850)}
-
     initLines: ->
         @lines = @map.lines()
 
     positionMap: ->
-        # move the position of the map so the player stays in the screen centre
-        @viewX = window.innerWidth / 2 / pixels
-        @viewY = window.innerHeight / 2 / pixels
+        @viewX = window.innerWidth / 4
+        @viewY = window.innerHeight / 4
 
     initGameParams: (params) ->
         @monsters = []
@@ -664,47 +515,30 @@ class Game
         console.log 'trigger', @testCount
         trigger.used = true
 
-window.say = (msg, holdTime, delay) ->
-    msg = msg.replace(/\s/g,'&nbsp;').replace("'", '&rsquo;')
-    holdTime = 2000 + holdTime * 1000
-    el = document.createElement('span')
-    el.innerHTML = msg
-#    el.appendChild(document.createTextNode(msg))
-    el.className = 'text fade-in'
-    o = document.getElementById('overlay')
-    o.appendChild(el)
-    setTimeout( (->el.className = 'text'), 100)
-    setTimeout( (->el.className = 'text fade-out'), holdTime)
-    setTimeout( (->o.removeChild(el)), holdTime + 4000 + delay)
+    say: (msg, holdTime, delay) ->
+        msg = msg.replace(/\s/g,'&nbsp;').replace("'", '&rsquo;')
+        holdTime = 2000 + holdTime * 1000
+        el = document.createElement('span')
+        el.innerHTML = msg
+    #    el.appendChild(document.createTextNode(msg))
+        el.className = 'text fade-in'
+        o = document.getElementById('overlay')
+        o.appendChild(el)
+        setTimeout( (->el.className = 'text'), 100)
+        setTimeout( (->el.className = 'text fade-out'), holdTime)
+        setTimeout( (->o.removeChild(el)), holdTime + 4000 + delay)
 
-window.saySoon = (msg, holdTime, delay) ->
-    setTimeout( (-> say(msg, holdTime)), delay * 1000)
+    saySoon: (msg, holdTime, delay) ->
+        setTimeout( (=> @say(msg, holdTime, 0)), delay * 1000)
 
-window.openingText = ->
-    messages =[
-        ['. . .', -.2, 1]
-        ["It's dark,              ", 1, 5]
-        ["             isn't it?", 0, 6]
-#        ["Don't worry", 0, 10]
-#        ["your night vision should return soon", 0, 12]
-#        ["dev msg: space turns light on/off", 0, 20]
-        ]
-    for msg in messages
-        saySoon msg[0], msg[1], msg[2]
+    openingText: ->
+        messages =[
+            ['. . .', 0, 0]
+            ["How did I end up here?", 0, 3]]
+        for msg in messages
+            @saySoon msg[0], msg[1], msg[2]
 
 # ----------------------------------------------------------------------------------------------------------------------
-
-window.randSeed = Math.floor(Math.random() * 10000)
-#window.randSeed = 8288
-# also 4693 5730
-
-# for tall
-# @w = 27 * 4
-# @h = 15 * 8
-# @tileSize = 7
-# 8165
-# 8288
-
 
 window.randomX = ->
     x = Math.sin(randSeed++) * 10000
@@ -723,9 +557,6 @@ window.update = (timestamp) ->
 
 window.byId = (elementId) ->
     document.getElementById(elementId)
-
-window.debug = (msg) ->
-    document.getElementById('debug').innerHTML = msg
 
 # Keys states (false: key is released / true: key is pressed)
 window.up = window.right = window.down = window.left = false
@@ -770,9 +601,6 @@ window.onkeyup = (e) ->
 
     
 window.initGame = ->
-#    debug "Map #"+randSeed
-#    window.game = new Game()
-#    document.onmousemove = game.updateMousePos
     window.paused = false
 
     mapParams = {
@@ -795,6 +623,7 @@ window.initGame = ->
             "remove-singles"]
     }
     gameParams = {
+#        start: [31,77],
         start: [76, 49],
 #        start: [40, 23],
         exit: [37, 21],
@@ -817,49 +646,7 @@ window.initGame = ->
     # and "(\d)" with $1
 
 
-    window.pixels = 2
     window.game = new Game(mapParams, gameParams)
-
-
-#    @map = new Map('map', params)
-#    @map.canvas.style.width = @map.canvas.width + 'px'
-#    @map.draw()
-
-#    canvas = document.getElementById('light-mask')
-#    ctx = canvas.getContext('2d')
-#    ctx.fillStyle = '#000'
-#    ctx.fillRect(0,0,1200,800)
-#    ctx.globalCompositeOperation = 'destination-out'
-#
-#    grd = ctx.createRadialGradient(400,400, 100, 400, 400, 300)
-#    grd.addColorStop(0, 'white')
-#    grd.addColorStop(1, 'rgba(0,0,0,0)')
-#    ctx.fillStyle=grd
-#    ctx.beginPath()
-#    ctx.arc(400, 400, 300, 0, Math.PI * 2)
-#    ctx.fill()
-
-
-#sourceCanvas = game.map.canvas
-#mc = game.maskCtx
-#mc.drawImage(sourceCanvas, -1000, -1000)
-
-
-#s = document.createElement('span')
-#<span>
-#    s.appendChild(document.createTextNode("... It's so dark ..."))
-##text "... It's so dark ..."
-#s.className = 'text'
-#"text"
-#o=document.getElementById('overlay')
-#<div id="overlay">
-#    o.appendChild(s)
-#<span class="text">
-#    s.classList
-#DOMTokenList [ "text" ]
-#s.className = "text fade-out"
-#"text fade-out"
-
 
 
 window.Game = Game
