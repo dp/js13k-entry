@@ -10,6 +10,6 @@ Controls are WASD or arrow keys
 
 Playable version at http://quietcode.com/renae/dungeon/index.html
 
-Dungeon generator, if youre interested, at http://quietcode.com/renae/dungeon/map.html 
+Dungeon generator, if you're interested, at http://quietcode.com/renae/dungeon/map.html 
 
 
