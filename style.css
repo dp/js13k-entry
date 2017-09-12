@@ -9,24 +9,6 @@ body {
     padding: 0;
     overflow: hidden;
 }
-
-#settings-panel {
-    width: 240px;
-    background-color: white;
-    position: fixed;
-    top:0;
-    left: 0;
-    padding: 5px;
-    display: none;
-}
-#settings-panel p {
-    margin: 10px 0;
-}
-#settings-panel input {
-    width: 40px;
-}
-
-
 #viewport {
     position: absolute;
     overflow: hidden;
@@ -42,21 +24,6 @@ body {
     bottom: 0;
     right: 0;
 }
-#debug {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
-/*#gameworld {*/
-    /*position: absolute;*/
-    /*top: 0px;*/
-    /*left: 0px;*/
-    /*!*background-color: rgba(0,255,0,0.2);*!*/
-    /*width: 2000px;*/
-    /*height: 2000px;*/
-    /*!*background-image: url('images/floor.png');*!*/
-    /*display: none;*/
-/*}*/
 #light-mask, #view {
     position: absolute;
     top:0;
@@ -65,58 +32,54 @@ body {
     image-rendering: crisp-edges;
     image-rendering: optimizespeed;
 }
-#light-mask {
+/*#light-mask {*/
     /*display: none;*/
-}
-.text {
-    position: absolute;
-    top: 80%;
-    left: 10%;
-    right: 10%;
-    color: white;
-    font-size: 40pt;
-    font-family:sans-serif;
-    transform-origin: 50% 50%;
-    transform: rotate(0);
-    opacity: 1;
-    filter: blur(1px);
-    transition: all 0.25s;
-    transition-timing-function: ease-out;
-    display: block;
-    /*width: 600px;*/
-    height: 60px;
-    text-align: center;
-}
+/*}*/
+/*.text {*/
+    /*position: absolute;*/
+    /*top: 80%;*/
+    /*left: 10%;*/
+    /*right: 10%;*/
+    /*color: white;*/
+    /*font-size: 40pt;*/
+    /*font-family:sans-serif;*/
+    /*transform-origin: 50% 50%;*/
+    /*transform: rotate(0);*/
+    /*opacity: 1;*/
+    /*filter: blur(1px);*/
+    /*transition: all 0.25s;*/
+    /*transition-timing-function: ease-out;*/
+    /*display: block;*/
+    /*!*width: 600px;*!*/
+    /*height: 60px;*/
+    /*text-align: center;*/
+/*}*/
 
-.dead .text {
-    color: #b00;
-    filter: blur(2px);
-    transition: all 1s;
-    font-size: 60pt;
-}
-.win .text {
-    color: #4b4;
-    transition: all 2s;
-}
-.text.fade-out {
-    /*top: 75%;*/
-    /*left: 15%;*/
-    /*transform: rotate(-15deg);*/
-    opacity: 0;
-    /*font-size: 20pt;*/
-    filter: blur(10px);
-    transition: all 0.5s;
-    transition-timing-function: linear;
-}
-.dead .text.fade-out {
-    color: #b00;
-    filter: blur(2px);
-    transition: all 5s;
-    font-size: 60pt;
-}
-.text.fade-in {
-    opacity: 0;
-}
+/*.dead .text {*/
+    /*color: #b00;*/
+    /*filter: blur(2px);*/
+    /*transition: all 1s;*/
+    /*font-size: 60pt;*/
+/*}*/
+/*.win .text {*/
+    /*color: #4b4;*/
+    /*transition: all 2s;*/
+/*}*/
+/*.text.fade-out {*/
+    /*opacity: 0;*/
+    /*filter: blur(10px);*/
+    /*transition: all 0.5s;*/
+    /*transition-timing-function: linear;*/
+/*}*/
+/*.dead .text.fade-out {*/
+    /*color: #b00;*/
+    /*filter: blur(2px);*/
+    /*transition: all 5s;*/
+    /*font-size: 60pt;*/
+/*}*/
+/*.text.fade-in {*/
+    /*opacity: 0;*/
+/*}*/
 #player, #light {
     display: block;
     position: absolute;
@@ -159,9 +122,6 @@ body {
 }
 .dead #player-ghost {
     display: block;
-}
-#player-ghost.up {
-
 }
 #death {
     background: linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0));
