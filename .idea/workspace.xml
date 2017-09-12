@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0f6f1f08-dbab-41ec-bde2-0cc11e44c84f" name="Default" comment="" />
+    <list default="true" id="0f6f1f08-dbab-41ec-bde2-0cc11e44c84f" name="Default" comment="another typo fix">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/README.md" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/readme.md" afterPath="$PROJECT_DIR$/readme.md" />
+    </list>
     <ignored mask="*.xml" />
     <ignored path="images/Change-light-off-1.png" />
     <ignored path="images/originals/Change-light-off.png" />
@@ -20,84 +25,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/index.html">
+      <file leaf-file-name="game.coffee" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/coffeescript/game.coffee">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="5" column="16" lean-forward="false" selection-start-line="5" selection-start-column="16" selection-end-line="5" selection-end-column="16" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="style.css" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/style.css">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="852">
-              <caret line="153" column="29" lean-forward="false" selection-start-line="153" selection-start-column="29" selection-end-line="153" selection-end-column="29" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="readme.md" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/readme.md">
-          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-            <state split_layout="SPLIT">
-              <first_editor relative-caret-position="180">
-                <caret line="12" column="0" lean-forward="true" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
-                <folding />
-              </first_editor>
-              <second_editor />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="map.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/map.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="658">
-              <caret line="59" column="49" lean-forward="true" selection-start-line="59" selection-start-column="49" selection-end-line="59" selection-end-column="49" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="demo.coffee" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/coffeescript/demo.coffee">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="714">
-              <caret line="799" column="23" lean-forward="true" selection-start-line="799" selection-start-column="23" selection-end-line="799" selection-end-column="23" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="tween.coffee" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/coffeescript/tween.coffee">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="279">
-              <caret line="45" column="20" lean-forward="false" selection-start-line="45" selection-start-column="11" selection-end-line="45" selection-end-column="20" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="vectors.coffee" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/coffeescript/vectors.coffee">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="769">
-              <caret line="63" column="19" lean-forward="false" selection-start-line="63" selection-start-column="2" selection-end-line="63" selection-end-column="19" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="map.coffee" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/coffeescript/map.coffee">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2298">
-              <caret line="243" column="36" lean-forward="false" selection-start-line="243" selection-start-column="30" selection-end-line="243" selection-end-column="36" />
+            <state relative-caret-position="-6053">
+              <caret line="226" column="37" lean-forward="false" selection-start-line="226" selection-start-column="31" selection-end-line="226" selection-end-column="37" />
               <folding />
             </state>
           </provider>
@@ -117,39 +49,38 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>consol</find>
-      <find>:</find>
-      <find>,</find>
-      <find>=&gt;</find>
-      <find>shadowDr</find>
-      <find>fuch</find>
-      <find>imageWidth</find>
-      <find>centreL</find>
-      <find>vnTween</find>
-      <find>lineW</find>
-      <find>&quot;</find>
-      <find>finish</find>
-      <find>@gameParams.</find>
-      <find>@lightOn</find>
-      <find>tween</find>
-      <find>light</find>
-      <find>turnLight</find>
-      <find>@gameWorld</find>
-      <find>itemIn</find>
-      <find>,&quot;action&quot;:&quot;game.onTrigger(t)&quot;</find>
-      <find>\s&quot;(\w+)&quot;:</find>
-      <find>&quot;(\d)&quot;</find>
-      <find>&quot;x&quot;</find>
-      <find>generate</find>
-      <find>tileSize</find>
-      <find>floorCanvas</find>
-      <find>@</find>
       <find>eyeCtx</find>
       <find>getImage</find>
       <find>xxx</find>
+      <find>pixels</find>
+      <find>x</find>
+      <find>wallAt</find>
+      <find>randomX</find>
+      <find>randSeed</find>
+      <find>randInt</find>
+      <find>#</find>
+      <find>dead</find>
+      <find>#player</find>
+      <find>.text</find>
+      <find>byId</find>
+      <find>classN</find>
+      <find>@map</find>
+      <find>game</find>
+      <find>@light.</find>
+      <find>Light</find>
+      <find>&quot;action&quot;</find>
+      <find>alp</find>
+      <find>console</find>
+      <find>Date</find>
+      <find>Vectors</find>
+      <find>distBetweenPoints</find>
+      <find>@light</find>
+      <find>@say</find>
+      <find>say</find>
+      <find>con</find>
+      <find>'red'</find>
     </findStrings>
     <replaceStrings>
-      <replace>1000</replace>
       <replace>@shadowCtx</replace>
       <replace>@seededRandom</replace>
       <replace>@randInt</replace>
@@ -169,6 +100,17 @@
       <replace>cv2</replace>
       <replace>q.</replace>
       <replace>cx5</replace>
+      <replace>2</replace>
+      <replace>y</replace>
+      <replace>#v</replace>
+      <replace>#p</replace>
+      <replace>#l</replace>
+      <replace>.t</replace>
+      <replace>Map</replace>
+      <replace>Light.</replace>
+      <replace>action</replace>
+      <replace>V</replace>
+      <replace>L</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -194,14 +136,28 @@
         <option value="$PROJECT_DIR$/zip this/utils.js" />
         <option value="$PROJECT_DIR$/zip this/demo.js" />
         <option value="$PROJECT_DIR$/zip this/index.html" />
-        <option value="$PROJECT_DIR$/coffeescript/map.coffee" />
         <option value="$PROJECT_DIR$/coffeescript/vectors.coffee" />
-        <option value="$PROJECT_DIR$/coffeescript/tween.coffee" />
-        <option value="$PROJECT_DIR$/coffeescript/demo.coffee" />
-        <option value="$PROJECT_DIR$/index.html" />
-        <option value="$PROJECT_DIR$/style.css" />
-        <option value="$PROJECT_DIR$/map.html" />
         <option value="$PROJECT_DIR$/readme.md" />
+        <option value="$PROJECT_DIR$/coffeescript/demo.coffee" />
+        <option value="$PROJECT_DIR$/map.html" />
+        <option value="$PROJECT_DIR$/coffeescript/map.coffee" />
+        <option value="$PROJECT_DIR$/coffeescript/tween.coffee" />
+        <option value="$PROJECT_DIR$/diet version/style.css" />
+        <option value="$PROJECT_DIR$/diet version/vectors.coffee" />
+        <option value="$PROJECT_DIR$/diet version/light.coffee" />
+        <option value="$PROJECT_DIR$/diet version/game.coffee" />
+        <option value="$PROJECT_DIR$/diet version/map.coffee" />
+        <option value="$PROJECT_DIR$/diet version/combined.coffee" />
+        <option value="$PROJECT_DIR$/diet version/q.js" />
+        <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/coffeescript/game.coffee" />
+        <option value="$PROJECT_DIR$/coffeescript/light.coffee" />
+        <option value="$PROJECT_DIR$/style.css" />
+        <option value="$PROJECT_DIR$/diet version/index.html" />
+        <option value="$PROJECT_DIR$/diet version/c.coffee" />
+        <option value="$PROJECT_DIR$/minified/index.html" />
+        <option value="$PROJECT_DIR$/minified/c.js" />
+        <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
@@ -238,7 +194,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
@@ -252,15 +207,21 @@
               <item name="js13k" type="462c0819:PsiDirectoryNode" />
               <item name="coffeescript" type="462c0819:PsiDirectoryNode" />
             </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <expand>
             <path>
-              <item name="js13k" type="b2602c69:ProjectViewProjectNode" />
-              <item name="js13k" type="462c0819:PsiDirectoryNode" />
-              <item name="images" type="462c0819:PsiDirectoryNode" />
+              <item name="Root" type="cbb8eebc:String" user="Root" />
+              <item name="js13k" type="cbb8eebc:String" user="js13k" />
             </path>
             <path>
-              <item name="js13k" type="b2602c69:ProjectViewProjectNode" />
-              <item name="js13k" type="462c0819:PsiDirectoryNode" />
-              <item name="javascript" type="462c0819:PsiDirectoryNode" />
+              <item name="Root" type="cbb8eebc:String" user="Root" />
+              <item name="js13k" type="cbb8eebc:String" user="js13k" />
+              <item name="coffeescript" type="cbb8eebc:String" user="coffeescript" />
             </path>
           </expand>
           <select />
@@ -300,7 +261,6 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32944608" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32944608" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -308,11 +268,20 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32944608" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19107144" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32944608" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -335,21 +304,21 @@
     <MESSAGE value="more work on shadows and hiding objects partially" />
     <MESSAGE value="better triggers. can now display messages" />
     <MESSAGE value="can now win or die. I think we're now feature complete" />
-    <option name="LAST_COMMIT_MESSAGE" value="can now win or die. I think we're now feature complete" />
+    <MESSAGE value="Merge branch 'master' of https://github.com/dp/js13k-entry&#10;&#10;# Conflicts:&#10;#&#9;.idea/workspace.xml" />
+    <MESSAGE value="cleaned up game code a bit" />
+    <MESSAGE value="set seed back to main map for Renae" />
+    <MESSAGE value="renamed demo.coffee/js to game. Split Light from tween (tween not used, but keeping it)" />
+    <MESSAGE value="another typo fix" />
+    <MESSAGE value="final complete version (i think!). includes diet and minified copies" />
+    <MESSAGE value="game has a name!" />
+    <MESSAGE value="game has a name" />
+    <option name="LAST_COMMIT_MESSAGE" value="game has a name" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="24" column="6" lean-forward="false" selection-start-line="24" selection-start-column="6" selection-end-line="24" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/style.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
@@ -390,7 +359,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/coffeescript/demo.coffee">
+    <entry file="file://$PROJECT_DIR$/coffeescript/game.coffee">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="8550">
           <caret line="570" column="0" lean-forward="false" selection-start-line="570" selection-start-column="0" selection-end-line="570" selection-end-column="0" />
@@ -446,7 +415,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/coffeescript/demo.coffee">
+    <entry file="file://$PROJECT_DIR$/coffeescript/game.coffee">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1740">
           <caret line="116" column="0" lean-forward="false" selection-start-line="114" selection-start-column="0" selection-end-line="116" selection-end-column="0" />
@@ -478,14 +447,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/map.coffee">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3713">
-          <caret line="32" column="29" lean-forward="false" selection-start-line="32" selection-start-column="29" selection-end-line="32" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/zip this/map.coffee" />
     <entry file="file://$PROJECT_DIR$/coffeescript/dungeon.coffee">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="674">
@@ -502,70 +464,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/demo.coffee">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="839">
-          <caret line="262" column="0" lean-forward="true" selection-start-line="262" selection-start-column="0" selection-end-line="262" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/utils.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="17" column="0" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/vectors.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="26" column="0" lean-forward="true" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/map.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="914">
-          <caret line="551" column="0" lean-forward="true" selection-start-line="551" selection-start-column="0" selection-end-line="551" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/tween.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="280">
-          <caret line="55" column="42" lean-forward="true" selection-start-line="55" selection-start-column="42" selection-end-line="55" selection-end-column="42" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/demo.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="0" lean-forward="true" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/style.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="960">
-          <caret line="64" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="122" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/zip this/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="2454" lean-forward="false" selection-start-line="0" selection-start-column="2454" selection-end-line="0" selection-end-column="2454" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/zip this/demo.coffee" />
+    <entry file="file://$PROJECT_DIR$/zip this/utils.js" />
+    <entry file="file://$PROJECT_DIR$/zip this/vectors.js" />
+    <entry file="file://$PROJECT_DIR$/zip this/map.js" />
+    <entry file="file://$PROJECT_DIR$/zip this/tween.js" />
+    <entry file="file://$PROJECT_DIR$/zip this/demo.js" />
+    <entry file="file://$PROJECT_DIR$/zip this/style.css" />
+    <entry file="file://$PROJECT_DIR$/zip this/index.html" />
     <entry file="file://$PROJECT_DIR$/javascript/map.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="334">
@@ -576,32 +482,88 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/coffeescript/map.coffee">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2298">
-          <caret line="243" column="36" lean-forward="false" selection-start-line="243" selection-start-column="30" selection-end-line="243" selection-end-column="36" />
+        <state relative-caret-position="1762">
+          <caret line="315" column="20" lean-forward="false" selection-start-line="315" selection-start-column="20" selection-end-line="315" selection-end-column="20" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/coffeescript/vectors.coffee">
+    <entry file="file://$PROJECT_DIR$/map.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="769">
-          <caret line="63" column="19" lean-forward="false" selection-start-line="63" selection-start-column="2" selection-end-line="63" selection-end-column="19" />
+        <state relative-caret-position="388">
+          <caret line="44" column="56" lean-forward="false" selection-start-line="44" selection-start-column="56" selection-end-line="44" selection-end-column="56" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/coffeescript/tween.coffee">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="279">
-          <caret line="45" column="20" lean-forward="false" selection-start-line="45" selection-start-column="11" selection-end-line="45" selection-end-column="20" />
+        <state relative-caret-position="495">
+          <caret line="33" column="0" lean-forward="false" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/coffeescript/demo.coffee">
+    <entry file="file://$PROJECT_DIR$/diet version/style.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="714">
-          <caret line="799" column="23" lean-forward="true" selection-start-line="799" selection-start-column="23" selection-end-line="799" selection-end-column="23" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="133" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/diet version/light.coffee">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="8" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="64" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/diet version/map.coffee">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="321" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/diet version/game.coffee">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="418">
+          <caret line="430" column="55" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="619" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/diet version/q.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="914">
+          <caret line="1" column="0" lean-forward="true" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/diet version/c.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="892">
+          <caret line="1366" column="0" lean-forward="true" selection-start-line="1366" selection-start-column="0" selection-end-line="1366" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/coffeescript/light.coffee">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="563">
+          <caret line="49" column="39" lean-forward="true" selection-start-line="49" selection-start-column="39" selection-end-line="49" selection-end-column="39" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/diet version/vectors.coffee">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="17" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -609,35 +571,75 @@
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
-          <caret line="5" column="16" lean-forward="false" selection-start-line="5" selection-start-column="16" selection-end-line="5" selection-end-column="16" />
+          <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="24" selection-end-line="5" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/style.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="852">
-          <caret line="153" column="29" lean-forward="false" selection-start-line="153" selection-start-column="29" selection-end-line="153" selection-end-column="29" />
+        <state relative-caret-position="167">
+          <caret line="36" column="5" lean-forward="true" selection-start-line="36" selection-start-column="5" selection-end-line="36" selection-end-column="5" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/map.html">
+    <entry file="file://$PROJECT_DIR$/diet version/c.coffee">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="658">
-          <caret line="59" column="49" lean-forward="true" selection-start-line="59" selection-start-column="49" selection-end-line="59" selection-end-column="49" />
+        <state relative-caret-position="327">
+          <caret line="667" column="39" lean-forward="false" selection-start-line="667" selection-start-column="39" selection-end-line="667" selection-end-column="39" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/readme.md">
+    <entry file="file://$PROJECT_DIR$/diet version/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-863">
+          <caret line="5" column="23" lean-forward="false" selection-start-line="5" selection-start-column="23" selection-end-line="5" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/coffeescript/vectors.coffee">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="844">
+          <caret line="68" column="0" lean-forward="false" selection-start-line="63" selection-start-column="0" selection-end-line="68" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/minified/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="1643" lean-forward="false" selection-start-line="0" selection-start-column="1643" selection-end-line="0" selection-end-column="1643" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/minified/c.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="13295" lean-forward="false" selection-start-line="0" selection-start-column="13295" selection-end-line="0" selection-end-column="13295" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="180">
-            <caret line="12" column="0" lean-forward="true" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
+            <caret line="12" column="26" lean-forward="false" selection-start-line="12" selection-start-column="26" selection-end-line="12" selection-end-column="26" />
             <folding />
           </first_editor>
           <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/coffeescript/game.coffee">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-6053">
+          <caret line="226" column="37" lean-forward="false" selection-start-line="226" selection-start-column="31" selection-end-line="226" selection-end-column="37" />
+          <folding />
         </state>
       </provider>
     </entry>
