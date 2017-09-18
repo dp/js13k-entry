@@ -5,7 +5,7 @@ class Light
         @lightValue = 0
         @viewRadius = 0
         @alpha = 1.0
-        @reduction = 7
+        @reduction = 8
         @tweening = false
         @tweenTimePassed = 0
         @tweenTime = 0

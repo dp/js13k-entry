@@ -9,7 +9,7 @@
       this.lightValue = 0;
       this.viewRadius = 0;
       this.alpha = 1.0;
-      this.reduction = 7;
+      this.reduction = 8;
       this.tweening = false;
       this.tweenTimePassed = 0;
       this.tweenTime = 0;
