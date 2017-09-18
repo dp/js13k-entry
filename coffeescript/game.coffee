@@ -78,31 +78,53 @@ class Game
 # playing
             @light.update(delta)
 
-            if right || left || up || down
-                dist = @speed * delta
-                testRange = 12 + dist
+            dist = @speed * delta
 
-                newDistQ = @distQ + (dist / @tileSize)
-#                if Math.floor(newDistQ) > Math.floor(@distQ)
-#                    console.log 'travelled ' + newDistQ
-                @distQ = newDistQ
+            if right || left || up || down
+                @targetPos = {x:@pos.x, y: @pos.y}
 
                 if right
-                    @pos.x += dist unless @wallAt(x: @pos.x + testRange, y: @pos.y)
+                    @targetPos.x += dist
                     className = 'right'
                 if left
-                    @pos.x -= dist unless @wallAt(x: @pos.x - testRange, y: @pos.y)
+                    @targetPos.x -= dist
                     className = 'left'
                 if down
-                    @pos.y += dist unless @wallAt(x: @pos.x, y: @pos.y + testRange)
+                    @targetPos.y += dist
                     className = 'down'
                 if up
-                    @pos.y -= dist unless @wallAt(x: @pos.x, y: @pos.y - testRange)
+                    @targetPos.y -= dist
                     className = 'up'
-                @lightEl.className = @playerEl.className = className
 
+            if @targetPos
+                angDist = Vectors.angleDistBetweenPoints(@pos, @targetPos)
+                if angDist.distance < dist
+                    dist = angDist.distance
+                    @targetPos = null
+                testRange = 12 + dist
+                newPos = Vectors.addVectorToPoint(@pos, angDist.angle, dist)
+                deltaX = newPos.x - @pos.x
+                deltaY = newPos.y - @pos.y
+                if deltaX > 0 && deltaX >= Math.abs(deltaY)
+                    className ||= 'right'
+                else if deltaX < 0 && 0 - deltaX >= Math.abs(deltaY)
+                    className ||= 'left'
+                else if deltaY > 0
+                    className ||= 'down'
+                else
+                    className ||= 'up'
+                @lightEl.className = @playerEl.className = className
+                if deltaX > 0
+                    @pos.x += deltaX unless @wallAt(x: newPos.x + testRange, y: newPos.y)
+                if deltaX < 0
+                    @pos.x += deltaX unless @wallAt(x: newPos.x - testRange, y: newPos.y)
+                if deltaY > 0
+                    @pos.y += deltaY unless @wallAt(x: newPos.x, y: newPos.y + testRange)
+                if deltaY < 0
+                    @pos.y += deltaY unless @wallAt(x: newPos.x, y: newPos.y - testRange)
                 if @itemInRange(x: @exit.x, y: @exit.y - 70, 80)
                     @win()
+
 
             if window.toggleLight
                 if @light.on
@@ -540,6 +562,16 @@ class Game
     tilePosToGameXY: (xy) ->
         x: (xy[0] + .5) * @tileSize, y: (xy[1] + .5) * @tileSize
 
+    screenClickedAt: (screenPosX, screenPosY) ->
+#        console.log screenPosX, screenPosY
+        gameClickPosX = (screenPosX / 2) + @pos.x - @viewX
+        gameClickPosY = (screenPosY / 2) + @pos.y - @viewY
+        @targetPos = x:gameClickPosX, y:gameClickPosY
+
+    screenTouched: (e) ->
+        console.log 'screen touched', e
+
+
 #    testTrigger: (trigger) ->
 #        @testCount ||= 1
 #        console.log 'trigger', @testCount
@@ -605,7 +637,7 @@ window.onkeydown = (e) ->
     # Left (left / A / Q)
     if(e.keyCode == 37 || e.keyCode == 65 || e.keyCode == 81)
         window.left = true
-    if(e.keyCode == 66)
+    if(e.keyCode == 80)
         window.paused = true
 
 
@@ -625,6 +657,19 @@ window.onkeyup = (e) ->
         window.left = false
 #    console.log "up:#{up} down:#{down} left:#{left} right:#{right}"
 
+#window.onclick = (e) ->
+#    game?.screenClickedAt e.clientX, e.clientY
+
+window.screenTouched = (e) ->
+    e.preventDefault()
+    touch = e.touches[0]
+    if touch
+        game?.screenClickedAt touch.clientX, touch.clientY
+
+#window.screenTouchMoved = (e) ->
+
+window.addEventListener('touchstart', screenTouched, false)
+window.addEventListener('touchmove', screenTouched, false)
 
 window.initGame = ->
     window.paused = false
@@ -669,7 +714,7 @@ window.initGame = ->
             {x: 81, y: 49, r: "3", msg: "It's dangerous to go alone|I should take this"}, # 8
             {x: 54, y: 74, r: "7", msg: "Why are they|following me?"}, # 9
             {x: 16, y: 35, r: "3", msg: "Are those red dots ...|eyes?"}, # 10
-            {x: 4, y: 51, r: "3", msg: "I feel like we're|going in circles!"}, # 11
+            {x: 4, y: 51, r: "3", msg: "This cave is dark|and full of terrors"}, # 11
             {x: 35, y: 32, r: "7", msg: "Well, that was a waste|of time"}] # 12
     }
 

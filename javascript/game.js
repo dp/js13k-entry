@@ -54,7 +54,7 @@
     }
 
     Game.prototype.update = function(timestamp) {
-      var className, delta, dist, newDistQ, pg, testRange;
+      var angDist, className, delta, deltaX, deltaY, dist, newPos, pg, testRange;
       if (this.lastTimestamp) {
         delta = (timestamp - this.lastTimestamp) / 1000;
       } else {
@@ -71,48 +71,81 @@
         }
       } else {
         this.light.update(delta);
+        dist = this.speed * delta;
         if (right || left || up || down) {
-          dist = this.speed * delta;
-          testRange = 12 + dist;
-          newDistQ = this.distQ + (dist / this.tileSize);
-          this.distQ = newDistQ;
+          this.targetPos = {
+            x: this.pos.x,
+            y: this.pos.y
+          };
           if (right) {
-            if (!this.wallAt({
-              x: this.pos.x + testRange,
-              y: this.pos.y
-            })) {
-              this.pos.x += dist;
-            }
+            this.targetPos.x += dist;
             className = 'right';
           }
           if (left) {
-            if (!this.wallAt({
-              x: this.pos.x - testRange,
-              y: this.pos.y
-            })) {
-              this.pos.x -= dist;
-            }
+            this.targetPos.x -= dist;
             className = 'left';
           }
           if (down) {
-            if (!this.wallAt({
-              x: this.pos.x,
-              y: this.pos.y + testRange
-            })) {
-              this.pos.y += dist;
-            }
+            this.targetPos.y += dist;
             className = 'down';
           }
           if (up) {
-            if (!this.wallAt({
-              x: this.pos.x,
-              y: this.pos.y - testRange
-            })) {
-              this.pos.y -= dist;
-            }
+            this.targetPos.y -= dist;
             className = 'up';
           }
+        }
+        if (this.targetPos) {
+          angDist = Vectors.angleDistBetweenPoints(this.pos, this.targetPos);
+          if (angDist.distance < dist) {
+            dist = angDist.distance;
+            this.targetPos = null;
+          }
+          testRange = 12 + dist;
+          newPos = Vectors.addVectorToPoint(this.pos, angDist.angle, dist);
+          deltaX = newPos.x - this.pos.x;
+          deltaY = newPos.y - this.pos.y;
+          if (deltaX > 0 && deltaX >= Math.abs(deltaY)) {
+            className || (className = 'right');
+          } else if (deltaX < 0 && 0 - deltaX >= Math.abs(deltaY)) {
+            className || (className = 'left');
+          } else if (deltaY > 0) {
+            className || (className = 'down');
+          } else {
+            className || (className = 'up');
+          }
           this.lightEl.className = this.playerEl.className = className;
+          if (deltaX > 0) {
+            if (!this.wallAt({
+              x: newPos.x + testRange,
+              y: newPos.y
+            })) {
+              this.pos.x += deltaX;
+            }
+          }
+          if (deltaX < 0) {
+            if (!this.wallAt({
+              x: newPos.x - testRange,
+              y: newPos.y
+            })) {
+              this.pos.x += deltaX;
+            }
+          }
+          if (deltaY > 0) {
+            if (!this.wallAt({
+              x: newPos.x,
+              y: newPos.y + testRange
+            })) {
+              this.pos.y += deltaY;
+            }
+          }
+          if (deltaY < 0) {
+            if (!this.wallAt({
+              x: newPos.x,
+              y: newPos.y - testRange
+            })) {
+              this.pos.y += deltaY;
+            }
+          }
           if (this.itemInRange({
             x: this.exit.x,
             y: this.exit.y - 70
@@ -652,6 +685,20 @@
       };
     };
 
+    Game.prototype.screenClickedAt = function(screenPosX, screenPosY) {
+      var gameClickPosX, gameClickPosY;
+      gameClickPosX = (screenPosX / 2) + this.pos.x - this.viewX;
+      gameClickPosY = (screenPosY / 2) + this.pos.y - this.viewY;
+      return this.targetPos = {
+        x: gameClickPosX,
+        y: gameClickPosY
+      };
+    };
+
+    Game.prototype.screenTouched = function(e) {
+      return console.log('screen touched', e);
+    };
+
     Game.prototype.openingText = function() {
       Msg.say('...');
       return setTimeout((function() {
@@ -707,7 +754,7 @@
     if (e.keyCode === 37 || e.keyCode === 65 || e.keyCode === 81) {
       window.left = true;
     }
-    if (e.keyCode === 66) {
+    if (e.keyCode === 80) {
       return window.paused = true;
     }
   };
@@ -726,6 +773,19 @@
       return window.left = false;
     }
   };
+
+  window.screenTouched = function(e) {
+    var touch;
+    e.preventDefault();
+    touch = e.touches[0];
+    if (touch) {
+      return typeof game !== "undefined" && game !== null ? game.screenClickedAt(touch.clientX, touch.clientY) : void 0;
+    }
+  };
+
+  window.addEventListener('touchstart', screenTouched, false);
+
+  window.addEventListener('touchmove', screenTouched, false);
 
   window.initGame = function() {
     var gameParams, mapParams;
@@ -803,7 +863,7 @@
           x: 4,
           y: 51,
           r: "3",
-          msg: "I feel like we're|going in circles!"
+          msg: "This cave is dark|and full of terrors"
         }, {
           x: 35,
           y: 32,
